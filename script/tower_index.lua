@@ -1,25 +1,33 @@
+-- Index for quickly finding agricultural towers potentially covering a given map position.
+-- To do this, we divide the map into a grid of square chunks, where the index maps chunk coordinates to sets of towers.
+-- When a tower is added or removed from the index, it is registered in all chunks that intersect with its influence radius.
+-- This enables efficient spatial queries to find all towers that could affect a given position on the map.
+
 local tower_index = {}
 
----@param point Vector
+---@param point MapPosition
 ---@return Vector
-local function point_to_chunk(point)
+local function position_to_chunk(point)
     return {x = math.floor(point.x / 32), y = math.floor(point.y / 32)}
 end
 
+---@alias TowerIndexKey string
 ---@param chunk_pos Vector
+---@return TowerIndexKey
 local function chunk_to_key(chunk_pos)
     return chunk_pos.x .. "," .. chunk_pos.y
 end
 
 function tower_index.on_init()
+    ---@type table<TowerIndexKey, table<LuaEntity, true>>
     storage.tower_index = {}
 end
 
 ---@param tower LuaEntity
-function tower_index.add_tower_to_cache(tower)
+function tower_index.add_tower(tower)
     local radius = tower.prototype.agricultural_tower_radius * tower.prototype.growth_grid_tile_size
-    local chunk_pos_1 = point_to_chunk({x = tower.bounding_box.left_top.x - radius, y = tower.bounding_box.left_top.y - radius})
-    local chunk_pos_2 = point_to_chunk({x = tower.bounding_box.right_bottom.x + radius, y = tower.bounding_box.right_bottom.y + radius})
+    local chunk_pos_1 = position_to_chunk({x = tower.bounding_box.left_top.x - radius, y = tower.bounding_box.left_top.y - radius})
+    local chunk_pos_2 = position_to_chunk({x = tower.bounding_box.right_bottom.x + radius, y = tower.bounding_box.right_bottom.y + radius})
     for x = chunk_pos_1.x, chunk_pos_2.x do
         for y = chunk_pos_1.y, chunk_pos_2.y do
             local key = chunk_to_key({x = x, y = y})
@@ -34,10 +42,10 @@ function tower_index.add_tower_to_cache(tower)
 end
 
 ---@param tower LuaEntity
-function tower_index.remove_tower_from_cache(tower)
+function tower_index.remove_tower(tower)
     local radius = tower.prototype.agricultural_tower_radius * tower.prototype.growth_grid_tile_size
-    local chunk_pos_1 = point_to_chunk({x = tower.bounding_box.left_top.x - radius, y = tower.bounding_box.left_top.y - radius})
-    local chunk_pos_2 = point_to_chunk({x = tower.bounding_box.right_bottom.x + radius, y = tower.bounding_box.right_bottom.y + radius})
+    local chunk_pos_1 = position_to_chunk({x = tower.bounding_box.left_top.x - radius, y = tower.bounding_box.left_top.y - radius})
+    local chunk_pos_2 = position_to_chunk({x = tower.bounding_box.right_bottom.x + radius, y = tower.bounding_box.right_bottom.y + radius})
 
     for x = chunk_pos_1.x, chunk_pos_2.x do
         for y = chunk_pos_1.y, chunk_pos_2.y do
@@ -52,9 +60,10 @@ function tower_index.remove_tower_from_cache(tower)
     end
 end
 
----@param point Vector
-function tower_index.get_towers_by_point(point)
-    local key = chunk_to_key(point_to_chunk(point))
+---@param position MapPosition
+---@return LuaEntity[]
+function tower_index.get_towers(position)
+    local key = chunk_to_key(position_to_chunk(position))
     local towers = {}
     if storage.tower_index[key] then
         for tower, _ in pairs(storage.tower_index[key]) do
@@ -64,7 +73,7 @@ function tower_index.get_towers_by_point(point)
             local x2 = tower.bounding_box.right_bottom.x + radius
             local y2 = tower.bounding_box.right_bottom.y + radius
             -- todo check if the plant is actually registered?
-            if point.x >= x1 and point.x <= x2 and point.y >= y1 and point.y <= y2 then
+            if position.x >= x1 and position.x <= x2 and position.y >= y1 and position.y <= y2 then
                 table.insert(towers, tower)
             end
         end
