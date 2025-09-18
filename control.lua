@@ -2,6 +2,7 @@ local constants = require("constants")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
 local tower_gui = require("script.tower_gui")
+local tower_index = require('script.tower_index')
 
 local ExtendedTower_instance_metatable = ExtendedTower.instance_metatable
 script.register_metatable("ExtendedTower_instance_metatable", ExtendedTower_instance_metatable)
@@ -10,18 +11,13 @@ script.on_init(
     function()
         ExtendedTower.on_init()
         callback_timer.on_init()
+        tower_index.on_init()
     end
 )
 
 script.on_configuration_changed(
     function(config_change)
         tower_gui.on_configuration_changed(config_change)
-    end
-)
-
-script.on_load(
-    function()
-        callback_timer.on_load()
     end
 )
 
@@ -82,12 +78,8 @@ script.on_event(defines.events.on_object_destroyed,
 )
 
 callback_timer.register_action("recount_mature_plants",
-    ---@param unit_number uint64
-    function(unit_number)
-        local tower = ExtendedTower.get(unit_number)
-        if tower then
-            tower:recount_mature_plants()
-        end
+    function(plant)
+        ExtendedTower.update_tower(plant)
     end
 )
 
@@ -95,7 +87,7 @@ script.on_event(defines.events.on_tower_planted_seed,
     function (event)
         local tower = ExtendedTower.get(event.tower)
         if tower then
-            callback_timer.add(event.plant.tick_grown, {action = "recount_mature_plants", data = tower.entity.unit_number})
+            callback_timer.add(event.plant.tick_grown, {action = "recount_mature_plants", data = event.plant})
         end
     end
 )
@@ -103,5 +95,13 @@ script.on_event(defines.events.on_tower_planted_seed,
 script.on_event(defines.events.on_tower_mined_plant,
     function(event)
         ExtendedTower.update_tower(event.plant)
+    end
+)
+
+script.on_event(defines.events.on_robot_mined_entity,
+    function(event)
+        if event.entity.type == 'plant' or event.entity.type == 'tree' then
+            ExtendedTower.update_tower(event.entity)
+        end
     end
 )

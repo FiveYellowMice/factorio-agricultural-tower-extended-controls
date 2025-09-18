@@ -1,4 +1,4 @@
-local tower_cache = require('script.tower_index')
+local tower_index = require('script.tower_index')
 
 -- Representation of an agricultural tower with our extended states.
 -- Resides in storage.
@@ -43,7 +43,7 @@ function ExtendedTower.create(entity)
     }, ExtendedTower.instance_metatable)
 
     storage.towers[entity.unit_number] = instance
-    tower_cache.add_tower_to_cache(entity)
+    tower_index.add_tower_to_cache(entity)
     script.register_on_object_destroyed(entity)
 
     instance:recount_mature_plants()
@@ -72,7 +72,7 @@ function ExtendedTower.remove(unit_number)
     local tower = storage.towers[unit_number]
     if not tower then return end
 
-    tower_cache.remove_tower(tower)
+    tower_index.remove_tower_from_cache(tower)
     storage.towers[unit_number] = nil
     if tower.output_combinator and tower.output_combinator.valid then
         tower.output_combinator.destroy()
@@ -87,8 +87,9 @@ end
 
 ---@param plant LuaEntity
 function ExtendedTower.update_tower(plant)
-    local towers = tower_cache.get_towers(plant.position)
-    for _, tower in ipairs(towers) do
+    local entities = tower_index.get_towers_by_point(plant.position)
+    for _, entity in ipairs(entities) do
+        local tower = ExtendedTower.get_or_create(entity)
         tower:recount_mature_plants()
     end
 end
@@ -101,6 +102,7 @@ function prototype:recount_mature_plants()
         end
     end
     self.mature_plant_count = count
+    game.print(count)
 end
 
 

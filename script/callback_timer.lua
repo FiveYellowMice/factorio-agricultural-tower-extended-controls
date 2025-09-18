@@ -18,6 +18,11 @@ function callback_timer.register_action(name, fun)
     callback_actions[name] = fun
 end
 
+function callback_timer.on_init()
+    ---@type table<MapTick, CallbackTimer[]?>
+    storage.callback_timers = {}
+end
+
 ---@param event EventData.on_tick
 function callback_timer.on_tick(event)
     -- Retrieve callbacks of this tick
@@ -38,17 +43,6 @@ function callback_timer.invoke(callback)
         error("Attempting to invoke callback action \""..callback.action.."\" but it is not registered")
     end
     action(callback.data)
-end
-
-function callback_timer.on_init()
-    ---@type table<MapTick, CallbackTimer[]?>
-    storage.callback_timers = {}
-end
-
-function callback_timer.on_load()
-    if next(storage.callback_timers) ~= nil then
-        script.on_event(defines.events.on_tick, callback_timer.on_tick)
-    end
 end
 
 ---Schedule a callback timer.
