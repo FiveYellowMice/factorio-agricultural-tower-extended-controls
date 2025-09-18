@@ -127,7 +127,7 @@ function prototype:recount_mature_plants()
                 value = {
                     type = self.read_mature_plants_signal.type,
                     name = self.read_mature_plants_signal.name,
-                    quality = self.read_mature_plants_signal.quality,
+                    quality = self.read_mature_plants_signal.quality or "normal",
                 },
                 min = self.mature_plant_count,
             }
