@@ -80,29 +80,32 @@ script.on_event(defines.events.on_object_destroyed,
     end
 )
 
-callback_timer.register_action("recount_mature_plants",
+callback_timer.register_action("on_plant_grown",
+    ---@param plant LuaEntity
     function(plant)
-        ExtendedTower.update_tower(plant)
+        if plant.valid and plant.tick_grown <= game.tick then
+            ExtendedTower.on_plant_grown(plant)
+        end
     end
 )
 
 script.on_event(defines.events.on_tower_planted_seed,
     function (event)
-        callback_timer.add(event.plant.tick_grown, {action = "recount_mature_plants", data = event.plant})
+        callback_timer.add(event.plant.tick_grown, {action = "on_plant_grown", data = event.plant})
     end
 )
 
 script.on_event(defines.events.on_built_entity,
     function (event)
         if event.entity.type == 'plant' then
-            callback_timer.add(event.entity.tick_grown, {action = "recount_mature_plants", data = event.entity})
+            callback_timer.add(event.entity.tick_grown, {action = "on_plant_grown", data = event.entity})
         end
     end
 )
 
 script.on_event(defines.events.on_tower_mined_plant,
     function(event)
-        ExtendedTower.update_tower(event.plant)
+        ExtendedTower.on_plant_mined(event.plant)
     end
 )
 
@@ -113,7 +116,7 @@ script.on_event({defines.events.on_robot_mined_entity, defines.events.on_player_
     ---| EventData.on_entity_died
     function(event)
         if event.entity.type == 'plant' then
-            ExtendedTower.update_tower(event.entity)
+            ExtendedTower.on_plant_mined(event.entity)
         end
     end
 )
