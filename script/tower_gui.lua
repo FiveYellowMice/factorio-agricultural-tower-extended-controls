@@ -32,7 +32,7 @@ function tower_gui.create(player, entity)
     local outer_frame = player.gui.relative.add{
         type = "frame",
         name = constants.gui_name,
-        caption = {"agricultural-tower-extended-signals.tower-gui-frame-title"},
+        caption = {"agricultural-tower-extended-controls.tower-gui-frame-title"},
         direction = "vertical",
         anchor = {
             gui = defines.relative_gui_type.agriculture_tower_gui,
@@ -49,7 +49,7 @@ function tower_gui.create(player, entity)
         type = "checkbox",
         name = "read-mature-plants-checkbox",
         style = "caption_checkbox",
-        caption = {"agricultural-tower-extended-signals.tower-gui-read-mature-plants-checkbox-label"},
+        caption = {"agricultural-tower-extended-controls.tower-gui-read-mature-plants-checkbox-label"},
         state = false,
         tags = {
             [constants.gui_changed_event_enabled] = true,
