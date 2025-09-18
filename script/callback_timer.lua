@@ -18,6 +18,18 @@ function callback_timer.register_action(name, fun)
     callback_actions[name] = fun
 end
 
+---@param event EventData.on_tick
+function callback_timer.on_tick(event)
+    -- Retrieve callbacks of this tick
+    local callbacks = storage.callback_timers[event.tick]
+    if not callbacks then return end
+    storage.callback_timers[event.tick] = nil
+
+    for _, callback in ipairs(callbacks) do
+        callback_timer.invoke(callback)
+    end
+end
+
 ---@package
 ---@param callback CallbackTimer
 function callback_timer.invoke(callback)
@@ -39,24 +51,6 @@ function callback_timer.on_load()
     end
 end
 
----@package
----@param event EventData.on_tick
-function callback_timer.on_tick(event)
-    -- Retrieve callbacks of this tick
-    local callbacks = storage.callback_timers[event.tick]
-    if not callbacks then return end
-    storage.callback_timers[event.tick] = nil
-
-    -- Remove on_tick listener if no more callbacks exist
-    if next(storage.callback_timers) == nil then
-        script.on_event(defines.events.on_tick, nil)
-    end
-
-    for _, callback in ipairs(callbacks) do
-        callback_timer.invoke(callback)
-    end
-end
-
 ---Schedule a callback timer.
 ---@param at_tick MapTick
 ---@param callback CallbackTimer
@@ -74,9 +68,6 @@ function callback_timer.add(at_tick, callback)
         storage.callback_timers[at_tick] = callbacks
     end
     table.insert(callbacks, callback)
-
-    -- Ensure on_tick is enabled
-    script.on_event(defines.events.on_tick, callback_timer.on_tick)
 
     game.print("Callback timer added: "..at_tick.." "..serpent.line(callback))
 end

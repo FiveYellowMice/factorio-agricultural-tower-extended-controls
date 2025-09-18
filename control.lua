@@ -25,6 +25,12 @@ script.on_load(
     end
 )
 
+script.on_event(defines.events.on_tick, 
+    function (event)
+        callback_timer.on_tick(event)
+    end
+)
+
 script.on_event(defines.events.on_gui_opened,
     function(event)
         if event.gui_type ~= defines.gui_type.entity or not event.entity or not event.entity.valid or not ExtendedTower.is_agricultural_tower(event.entity) then
@@ -96,9 +102,6 @@ script.on_event(defines.events.on_tower_planted_seed,
 
 script.on_event(defines.events.on_tower_mined_plant,
     function(event)
-        local tower = ExtendedTower.get(event.tower)
-        if tower then
-            tower:recount_mature_plants()
-        end
+        ExtendedTower.update_tower(event.plant)
     end
 )
