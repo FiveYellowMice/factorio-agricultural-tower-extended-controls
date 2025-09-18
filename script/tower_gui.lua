@@ -129,6 +129,8 @@ function tower_gui.on_gui_changed(player)
     for _, each_player in pairs(game.players) do
         tower_gui.refresh(each_player, entity)
     end
+
+    tower:on_control_settings_updated()
 end
 
 return tower_gui

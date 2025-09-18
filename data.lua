@@ -5,7 +5,7 @@ data:extend{
         type = "constant-combinator",
         name = constants.output_combinator_name,
         hidden = true,
-        --flags = {"not-on-map", "not-deconstructable", "not-blueprintable", "not-upgradable"},
+        flags = {"placeable-off-grid"},
         selectable_in_game = false,
         draw_copper_wires = false,
         draw_circuit_wires = false,

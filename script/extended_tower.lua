@@ -3,20 +3,19 @@ local tower_index = require('script.tower_index')
 -- Representation of an agricultural tower with our extended states.
 -- Resides in storage.
 
+local OutputCombinator = require("script.output_combinator")
+
 local ExtendedTower = {}
 
 ---@class ExtendedTower
 ---@field entity LuaEntity
----@field output_combinator LuaEntity?
+---@field output_combinator OutputCombinator?
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
 ---@field mature_plant_count uint
 local prototype = {}
-
+prototype.__index = prototype
 ExtendedTower.prototype = prototype
-ExtendedTower.instance_metatable = {
-    __index = prototype,
-}
 
 function ExtendedTower.on_init()
     ---@type table<uint64, ExtendedTower>
@@ -40,7 +39,7 @@ function ExtendedTower.create(entity)
         entity = entity,
         read_mature_plants_enabled = false,
         mature_plant_count = 0,
-    }, ExtendedTower.instance_metatable)
+    }, ExtendedTower.prototype)
 
     storage.towers[entity.unit_number] = instance
     tower_index.add_tower_to_cache(entity)
@@ -74,8 +73,8 @@ function ExtendedTower.remove(unit_number)
 
     tower_index.remove_tower_from_cache(tower.entity)
     storage.towers[unit_number] = nil
-    if tower.output_combinator and tower.output_combinator.valid then
-        tower.output_combinator.destroy()
+    if tower.output_combinator then
+        tower.output_combinator:destroy()
     end
 end
 
@@ -83,6 +82,22 @@ end
 ---@return boolean
 function ExtendedTower.is_agricultural_tower(entity)
     return entity.type == "agricultural-tower"
+end
+
+---Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
+function prototype:on_control_settings_updated()
+    -- Create or destroy the output combinator
+    if self.read_mature_plants_enabled then
+        if not self.output_combinator then
+            self.output_combinator = OutputCombinator.create(self.entity)
+        end
+        self:recount_mature_plants()
+    else
+        if self.output_combinator then
+            self.output_combinator:destroy()
+            self.output_combinator = nil
+        end
+    end
 end
 
 ---@param plant LuaEntity
@@ -102,7 +117,19 @@ function prototype:recount_mature_plants()
         end
     end
     self.mature_plant_count = count
-    game.print(count)
+
+    if self.read_mature_plants_enabled and self.read_mature_plants_signal and self.output_combinator then
+        self.output_combinator:set_output({
+            {
+                value = {
+                    type = self.read_mature_plants_signal.type,
+                    name = self.read_mature_plants_signal.name,
+                    quality = self.read_mature_plants_signal.quality,
+                },
+                min = self.mature_plant_count,
+            }
+        })
+    end
 end
 
 

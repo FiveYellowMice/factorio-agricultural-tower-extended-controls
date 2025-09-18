@@ -1,11 +1,14 @@
 local constants = require("constants")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
+local OutputCombinator = require("script.output_combinator")
 local tower_gui = require("script.tower_gui")
 local tower_index = require('script.tower_index')
 
-local ExtendedTower_instance_metatable = ExtendedTower.instance_metatable
-script.register_metatable("ExtendedTower_instance_metatable", ExtendedTower_instance_metatable)
+local ExtendedTower_prototype = ExtendedTower.prototype
+script.register_metatable("ExtendedTower_prototype", ExtendedTower_prototype)
+local OutputCombinator_prototype = OutputCombinator.prototype
+script.register_metatable("OutputCombinator_prototype", OutputCombinator_prototype)
 
 script.on_init(
     function()
@@ -21,7 +24,7 @@ script.on_configuration_changed(
     end
 )
 
-script.on_event(defines.events.on_tick, 
+script.on_event(defines.events.on_tick,
     function (event)
         callback_timer.on_tick(event)
     end
