@@ -85,9 +85,14 @@ callback_timer.register_action("recount_mature_plants",
 
 script.on_event(defines.events.on_tower_planted_seed,
     function (event)
-        local tower = ExtendedTower.get(event.tower)
-        if tower then
-            callback_timer.add(event.plant.tick_grown, {action = "recount_mature_plants", data = event.plant})
+        callback_timer.add(event.plant.tick_grown, {action = "recount_mature_plants", data = event.plant})
+    end
+)
+
+script.on_event(defines.events.on_built_entity,
+    function (event)
+        if event.entity.type == 'plant' then
+            callback_timer.add(event.entity.tick_grown, {action = "recount_mature_plants", data = event.entity})
         end
     end
 )
@@ -98,9 +103,13 @@ script.on_event(defines.events.on_tower_mined_plant,
     end
 )
 
-script.on_event(defines.events.on_robot_mined_entity,
+script.on_event({defines.events.on_robot_mined_entity, defines.events.on_player_mined_entity, defines.events.on_entity_died},
+    ---@param event
+    ---| EventData.on_robot_mined_entity
+    ---| EventData.on_player_mined_entity
+    ---| EventData.on_entity_died
     function(event)
-        if event.entity.type == 'plant' or event.entity.type == 'tree' then
+        if event.entity.type == 'plant' then
             ExtendedTower.update_tower(event.entity)
         end
     end
