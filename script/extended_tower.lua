@@ -103,10 +103,12 @@ end
 
 ---@param plant LuaEntity
 function ExtendedTower.update_tower(plant)
-    local entities = tower_index.get_towers(plant.position)
-    for _, entity in ipairs(entities) do
-        local tower = ExtendedTower.get_or_create(entity)
-        tower:recount_mature_plants()
+    local tower_ids = tower_index.get_towers_ids(plant.position)
+    for _, id in ipairs(tower_ids) do
+        local tower = ExtendedTower.get(id)
+        if tower then
+            tower:recount_mature_plants()
+        end
     end
 end
 

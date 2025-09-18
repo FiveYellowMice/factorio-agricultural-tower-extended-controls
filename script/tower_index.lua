@@ -36,7 +36,7 @@ function tower_index.add_tower(tower)
                 storage.tower_index[key] = {}
             end
             -- add the tower to cache
-            storage.tower_index[key][tower] = true
+            storage.tower_index[key][tower.unit_number] = true
         end
     end
 end
@@ -51,7 +51,7 @@ function tower_index.remove_tower(tower)
         for y = chunk_pos_1.y, chunk_pos_2.y do
             local key = chunk_to_key({x = x, y = y})
             if storage.tower_index[key] then
-                storage.tower_index[key][tower] = nil
+                storage.tower_index[key][tower.unit_number] = nil
                 if next(storage.tower_index[key]) == nil then
                     storage.tower_index[key] = nil
                 end
@@ -61,21 +61,22 @@ function tower_index.remove_tower(tower)
 end
 
 ---@param position MapPosition
----@return LuaEntity[]
-function tower_index.get_towers(position)
+---@return uint64[]
+function tower_index.get_towers_ids(position)
     local key = chunk_to_key(position_to_chunk(position))
     local towers = {}
     if storage.tower_index[key] then
-        for tower, _ in pairs(storage.tower_index[key]) do
-            local radius = tower.prototype.agricultural_tower_radius * tower.prototype.growth_grid_tile_size
-            local x1 = tower.bounding_box.left_top.x - radius
-            local y1 = tower.bounding_box.left_top.y - radius
-            local x2 = tower.bounding_box.right_bottom.x + radius
-            local y2 = tower.bounding_box.right_bottom.y + radius
-            -- todo check if the plant is actually registered?
-            if position.x >= x1 and position.x <= x2 and position.y >= y1 and position.y <= y2 then
-                table.insert(towers, tower)
-            end
+        for tower_uid, _ in pairs(storage.tower_index[key]) do
+            -- local radius = tower.prototype.agricultural_tower_radius * tower.prototype.growth_grid_tile_size
+            -- local x1 = tower.bounding_box.left_top.x - radius
+            -- local y1 = tower.bounding_box.left_top.y - radius
+            -- local x2 = tower.bounding_box.right_bottom.x + radius
+            -- local y2 = tower.bounding_box.right_bottom.y + radius
+            -- -- todo check if the plant is actually registered?
+            -- if position.x >= x1 and position.x <= x2 and position.y >= y1 and position.y <= y2 then
+            --     table.insert(towers, tower)
+            -- end
+            table.insert(towers, tower_uid)
         end
     end
     return towers
