@@ -38,6 +38,7 @@ script.on_event(defines.events.on_gui_opened,
         local player = game.get_player(event.player_index)
         if not player then return end
 
+        tower_gui.destroy(player) -- in case on_gui_closed didn't fire for the last tower GUI
         tower_gui.create(player, event.entity)
     end
 )
