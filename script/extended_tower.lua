@@ -107,6 +107,7 @@ function ExtendedTower.update_tower(plant)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
         if tower then
+            -- Optional check: is plant within tower range?
             tower:recount_mature_plants()
         end
     end

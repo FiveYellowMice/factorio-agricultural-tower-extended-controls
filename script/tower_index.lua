@@ -3,12 +3,13 @@
 -- When a tower is added or removed from the index, it is registered in all chunks that intersect with its influence radius.
 -- This enables efficient spatial queries to find all towers that could affect a given position on the map.
 
+local constants = require("constants")
 local tower_index = {}
 
 ---@param point MapPosition
 ---@return Vector
 local function position_to_chunk(point)
-    return {x = math.floor(point.x / 32), y = math.floor(point.y / 32)}
+    return {x = math.floor(point.x / constants.index_chunk_size), y = math.floor(point.y / constants.index_chunk_size)}
 end
 
 ---@alias TowerIndexKey string
@@ -67,15 +68,6 @@ function tower_index.get_towers_ids(position)
     local towers = {}
     if storage.tower_index[key] then
         for tower_uid, _ in pairs(storage.tower_index[key]) do
-            -- local radius = tower.prototype.agricultural_tower_radius * tower.prototype.growth_grid_tile_size
-            -- local x1 = tower.bounding_box.left_top.x - radius
-            -- local y1 = tower.bounding_box.left_top.y - radius
-            -- local x2 = tower.bounding_box.right_bottom.x + radius
-            -- local y2 = tower.bounding_box.right_bottom.y + radius
-            -- -- todo check if the plant is actually registered?
-            -- if position.x >= x1 and position.x <= x2 and position.y >= y1 and position.y <= y2 then
-            --     table.insert(towers, tower)
-            -- end
             table.insert(towers, tower_uid)
         end
     end

@@ -1,6 +1,7 @@
 local constants = {}
 
 constants.name_prefix = "agricultural_tower_extended_controls-"
+constants.index_chunk_size = 3
 
 constants.output_combinator_name = constants.name_prefix.."output-combinator"
 constants.gui_name = constants.name_prefix.."tower-gui"
