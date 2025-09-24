@@ -9,6 +9,7 @@ data:extend{
         selectable_in_game = false,
         draw_copper_wires = false,
         draw_circuit_wires = false,
+        icon_draw_specification = {scale = 0},
 
         activity_led_light_offsets = {{0, 0}, {0, 0}, {0, 0}, {0, 0}},
         circuit_wire_connection_points = {{wire = {}, shadow = {}}, {wire = {}, shadow = {}}, {wire = {}, shadow = {}}, {wire = {}, shadow = {}}},
