@@ -12,7 +12,7 @@ local ExtendedTower = {}
 ---@field output_combinator OutputCombinator?
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
----@field mature_plant_count uint
+---@field mature_plant_count uint Valid only when read_mature_plants_enabled is true.
 local prototype = {}
 prototype.__index = prototype
 ExtendedTower.prototype = prototype
@@ -46,7 +46,7 @@ function ExtendedTower.create(entity)
 
     tower_index.add_tower(entity)
 
-    instance:recount_mature_plants()
+    instance:on_control_settings_updated()
 
     return instance
 end
@@ -91,7 +91,8 @@ function ExtendedTower.on_plant_grown(plant)
     local tower_ids = tower_index.get_towers_ids(plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
-        if tower then
+        if tower and tower:valid() and tower.read_mature_plants_enabled then
+            -- TODO: check if plant is witin tower range
             tower:recount_mature_plants()
         end
     end
@@ -101,7 +102,7 @@ callback_timer.register_action("recount_mature_plants",
     ---@param unit_number uint64
     function(unit_number)
         local tower = ExtendedTower.get(unit_number)
-        if tower then
+        if tower and tower:valid() and tower.read_mature_plants_enabled then
             tower:recount_mature_plants()
         end
     end
@@ -112,13 +113,20 @@ function ExtendedTower.on_plant_mined(plant)
     local tower_ids = tower_index.get_towers_ids(plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
-        if tower then
+        if tower and tower:valid() and tower.read_mature_plants_enabled then
+            -- TODO: check if plant is witin tower range
+
             -- This function gets called from events fired before the entity is actually destroyed
             -- (else we wouldn't get a valid LuaEntity object), so recounting needs to happen 1 tick
             -- after to not count the plant pending destruction.
             callback_timer.add(game.tick + 1, {action = "recount_mature_plants", data = id})
         end
     end
+end
+
+---@return boolean
+function prototype:valid()
+    return self.entity.valid
 end
 
 ---Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
@@ -133,18 +141,6 @@ function prototype:on_control_settings_updated()
         if self.output_combinator then
             self.output_combinator:destroy()
             self.output_combinator = nil
-        end
-    end
-end
-
----@param plant LuaEntity
-function ExtendedTower.update_tower(plant)
-    local tower_ids = tower_index.get_towers_ids(plant.position)
-    for _, id in ipairs(tower_ids) do
-        local tower = ExtendedTower.get(id)
-        if tower then
-            -- Optional check: is plant within tower range?
-            tower:recount_mature_plants()
         end
     end
 end
