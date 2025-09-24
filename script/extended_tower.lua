@@ -1,7 +1,8 @@
 -- Representation of an agricultural tower with our extended states.
 -- Resides in storage.
 
-local tower_index = require('script.tower_index')
+local tower_index = require("script.tower_index")
+local callback_timer = require("script.callback_timer")
 local OutputCombinator = require("script.output_combinator")
 
 local ExtendedTower = {}
@@ -85,6 +86,38 @@ function ExtendedTower.is_agricultural_tower(entity)
     return entity.type == "agricultural-tower"
 end
 
+---@param plant LuaEntity
+function ExtendedTower.on_plant_grown(plant)
+    local tower_ids = tower_index.get_towers_ids(plant.position)
+    for _, id in ipairs(tower_ids) do
+        local tower = ExtendedTower.get(id)
+        if tower then
+            tower:recount_mature_plants()
+        end
+    end
+end
+
+callback_timer.register_action("recount_mature_plants",
+    ---@param unit_number uint64
+    function(unit_number)
+        local tower = ExtendedTower.get(unit_number)
+        if tower then
+            tower:recount_mature_plants()
+        end
+    end
+)
+
+---@param plant LuaEntity
+function ExtendedTower.on_plant_mined(plant)
+    local tower_ids = tower_index.get_towers_ids(plant.position)
+    for _, id in ipairs(tower_ids) do
+        local tower = ExtendedTower.get(id)
+        if tower then
+            callback_timer.add(game.tick + 1, {action = "recount_mature_plants", data = id})
+        end
+    end
+end
+
 ---Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
 function prototype:on_control_settings_updated()
     -- Create or destroy the output combinator
@@ -128,7 +161,7 @@ function prototype:recount_mature_plants()
                 value = {
                     type = self.read_mature_plants_signal.type,
                     name = self.read_mature_plants_signal.name,
-                    quality = self.read_mature_plants_signal.quality,
+                    quality = self.read_mature_plants_signal.quality or "normal",
                 },
                 min = self.mature_plant_count,
             }
