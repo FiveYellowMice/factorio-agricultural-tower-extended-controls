@@ -25,7 +25,7 @@ script.on_configuration_changed(
 )
 
 script.on_event(defines.events.on_tick,
-    function (event)
+    function(event)
         callback_timer.on_tick(event)
     end
 )
@@ -73,7 +73,7 @@ script.on_event(
 )
 
 script.on_event(defines.events.on_object_destroyed,
-    function (event)
+    function(event)
         if event.type == defines.target_type.entity and event.useful_id then
             ExtendedTower.remove(event.useful_id)
         end
@@ -89,34 +89,59 @@ callback_timer.register_action("on_plant_grown",
     end
 )
 
-script.on_event(defines.events.on_tower_planted_seed,
-    function (event)
-        callback_timer.add(event.plant.tick_grown, {action = "on_plant_grown", data = event.plant})
-    end
-)
+---@param event
+---| EventData.on_tower_planted_seed
+---| EventData.on_built_entity
+---| EventData.on_robot_built_entity
+---| EventData.on_space_platform_built_entity
+---| EventData.on_trigger_created_entity
+---| EventData.script_raised_built
+---| EventData.script_raised_revive
+local function built_entity_handler(event)
+    local entity = event.plant or event.entity
 
-script.on_event(defines.events.on_built_entity,
-    function (event)
-        if event.entity.type == 'plant' then
-            callback_timer.add(event.entity.tick_grown, {action = "on_plant_grown", data = event.entity})
-        end
+    if entity.type == "plant" then
+        -- Wait for the plant to grow
+        callback_timer.add(entity.tick_grown, {action = "on_plant_grown", data = entity})
     end
-)
+end
+local built_entity_filter = {
+    {
+        filter = "type",
+        type = "plant",
+    },
+}
+script.on_event(defines.events.on_tower_planted_seed, built_entity_handler)
+script.on_event(defines.events.on_built_entity, built_entity_handler, built_entity_filter)
+script.on_event(defines.events.on_robot_built_entity, built_entity_handler, built_entity_filter)
+script.on_event(defines.events.on_space_platform_built_entity, built_entity_handler, built_entity_filter)
+script.on_event(defines.events.on_trigger_created_entity, built_entity_handler)
+script.on_event(defines.events.script_raised_built, built_entity_handler, built_entity_filter)
+script.on_event(defines.events.script_raised_revive, built_entity_handler, built_entity_filter)
 
-script.on_event(defines.events.on_tower_mined_plant,
-    function(event)
-        ExtendedTower.on_plant_mined(event.plant)
-    end
-)
+---@param event
+---| EventData.on_tower_mined_plant
+---| EventData.on_robot_mined_entity
+---| EventData.on_player_mined_entity
+---| EventData.on_space_platform_mined_entity
+---| EventData.on_entity_died
+---| EventData.script_raised_destroy
+local function mined_entity_handler(event)
+    local entity = event.plant or event.entity
 
-script.on_event({defines.events.on_robot_mined_entity, defines.events.on_player_mined_entity, defines.events.on_entity_died},
-    ---@param event
-    ---| EventData.on_robot_mined_entity
-    ---| EventData.on_player_mined_entity
-    ---| EventData.on_entity_died
-    function(event)
-        if event.entity.type == 'plant' then
-            ExtendedTower.on_plant_mined(event.entity)
-        end
+    if entity.type == 'plant' then
+        ExtendedTower.on_plant_mined(entity)
     end
-)
+end
+local mined_entity_filter = {
+    {
+        filter = "type",
+        type = "plant",
+    },
+}
+script.on_event(defines.events.on_tower_mined_plant, mined_entity_handler)
+script.on_event(defines.events.on_player_mined_entity, mined_entity_handler, mined_entity_filter)
+script.on_event(defines.events.on_robot_mined_entity, mined_entity_handler, mined_entity_filter)
+script.on_event(defines.events.on_space_platform_mined_entity, mined_entity_handler, mined_entity_filter)
+script.on_event(defines.events.on_entity_died, mined_entity_handler, mined_entity_filter)
+script.on_event(defines.events.script_raised_destroy, mined_entity_handler, mined_entity_filter)

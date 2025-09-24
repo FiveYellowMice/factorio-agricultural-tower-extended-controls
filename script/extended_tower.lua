@@ -113,6 +113,9 @@ function ExtendedTower.on_plant_mined(plant)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
         if tower then
+            -- This function gets called from events fired before the entity is actually destroyed
+            -- (else we wouldn't get a valid LuaEntity object), so recounting needs to happen 1 tick
+            -- after to not count the plant pending destruction.
             callback_timer.add(game.tick + 1, {action = "recount_mature_plants", data = id})
         end
     end
