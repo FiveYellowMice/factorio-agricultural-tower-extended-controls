@@ -86,6 +86,25 @@ function ExtendedTower.is_agricultural_tower(entity)
     return entity.type == "agricultural-tower"
 end
 
+ExtendedTower.agricultural_tower_event_filter = {
+    filter = "type",
+    type = "agricultural-tower",
+}
+
+---Called when an agricultural tower is cloned or settings copied.
+---@param source LuaEntity
+---@param destination LuaEntity
+function ExtendedTower.on_tower_copied(source, destination)
+    local src_tower = ExtendedTower.get(source)
+    if not src_tower then return end
+
+    local dst_tower = ExtendedTower.get_or_create(destination)
+    dst_tower.read_mature_plants_enabled = src_tower.read_mature_plants_enabled
+    dst_tower.read_mature_plants_signal = src_tower.read_mature_plants_signal
+
+    dst_tower:on_control_settings_updated()
+end
+
 ---@param plant LuaEntity
 function ExtendedTower.on_plant_grown(plant)
     local tower_ids = tower_index.get_towers_ids(plant.position)

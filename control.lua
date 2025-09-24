@@ -30,6 +30,9 @@ script.on_event(defines.events.on_tick,
     end
 )
 
+
+-- GUI events
+
 script.on_event(defines.events.on_gui_opened,
     function(event)
         if event.gui_type ~= defines.gui_type.entity or not event.entity or not event.entity.valid or not ExtendedTower.is_agricultural_tower(event.entity) then
@@ -73,13 +76,8 @@ script.on_event(
     end
 )
 
-script.on_event(defines.events.on_object_destroyed,
-    function(event)
-        if event.type == defines.target_type.entity and event.useful_id then
-            ExtendedTower.remove(event.useful_id)
-        end
-    end
-)
+
+-- Entity creation, plant growth
 
 callback_timer.register_action("on_plant_grown",
     ---@param plant LuaEntity
@@ -120,6 +118,9 @@ script.on_event(defines.events.on_trigger_created_entity, built_entity_handler)
 script.on_event(defines.events.script_raised_built, built_entity_handler, built_entity_filter)
 script.on_event(defines.events.script_raised_revive, built_entity_handler, built_entity_filter)
 
+
+-- Entity destruction, plant harvesting
+
 ---@param event
 ---| EventData.on_tower_mined_plant
 ---| EventData.on_robot_mined_entity
@@ -146,3 +147,48 @@ script.on_event(defines.events.on_robot_mined_entity, mined_entity_handler, mine
 script.on_event(defines.events.on_space_platform_mined_entity, mined_entity_handler, mined_entity_filter)
 script.on_event(defines.events.on_entity_died, mined_entity_handler, mined_entity_filter)
 script.on_event(defines.events.script_raised_destroy, mined_entity_handler, mined_entity_filter)
+
+
+-- Tower settings transfer
+
+script.on_event(defines.events.on_entity_cloned,
+    function(event)
+        if ExtendedTower.is_agricultural_tower(event.destination) then
+            ExtendedTower.on_tower_copied(event.source, event.destination)
+        else
+            -- Also handle this event as build
+            built_entity_handler({
+                name = event.name,
+                tick = event.tick,
+                entity = event.destination,
+            })
+        end
+    end,
+    {
+        {
+            filter = "type",
+            type = "plant",
+        },
+        ExtendedTower.agricultural_tower_event_filter,
+    }
+)
+
+script.on_event(defines.events.on_entity_settings_pasted,
+    function(event)
+        if ExtendedTower.is_agricultural_tower(event.destination) then
+            ExtendedTower.on_tower_copied(event.source, event.destination)
+        end
+    end
+)
+
+
+-- Ensure the destruction of towers is always caught.
+-- Minimize the time invalid entities have in storage.
+
+script.on_event(defines.events.on_object_destroyed,
+    function(event)
+        if event.type == defines.target_type.entity and event.useful_id then
+            ExtendedTower.remove(event.useful_id)
+        end
+    end
+)
