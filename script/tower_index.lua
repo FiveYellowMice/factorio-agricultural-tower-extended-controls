@@ -44,7 +44,7 @@ end
 
 ---@param tower_id uint64
 function tower_index.remove_tower(tower_id)
-    for key, towers in ipairs(storage.tower_index) do
+    for key, towers in pairs(storage.tower_index) do
         if towers[tower_id] then
             towers[tower_id] = nil
             if next(storage.tower_index[key]) == nil then
