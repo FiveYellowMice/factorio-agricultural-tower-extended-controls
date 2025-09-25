@@ -72,7 +72,7 @@ function ExtendedTower.remove(unit_number)
     local tower = storage.towers[unit_number]
     if not tower then return end
 
-    tower_index.remove_tower(tower.entity)
+    tower_index.remove_tower(unit_number)
     if tower.output_combinator then
         tower.output_combinator:destroy()
     end
