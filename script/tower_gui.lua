@@ -23,7 +23,7 @@ end
 ---@param entity LuaEntity
 ---@return LuaGuiElement?
 function tower_gui.create(player, entity)
-    if not entity.valid or entity.type ~= "agricultural-tower" then return end
+    if not entity.valid or ExtendedTower.is_agricultural_tower(entity) then return end
 
     -- No GUI when entity is not connected to circuit
     local circuit_connected = entity.get_circuit_network(defines.wire_connector_id.circuit_red) or entity.get_circuit_network(defines.wire_connector_id.circuit_green)
@@ -90,9 +90,17 @@ function tower_gui.destroy(player)
 end
 
 ---Refresh GUI states based on the underlying data, if the player has the GUI of the specified entity open.
----@param player LuaPlayer
+---If player is nil, refresh for every player who has the entity open.
+---@param player LuaPlayer?
 ---@param entity LuaEntity
 function tower_gui.refresh(player, entity)
+    if not player then
+        for _, each_player in pairs(game.players) do
+            tower_gui.refresh(each_player, entity)
+        end
+        return
+    end
+
     local frame = player.gui.relative[constants.gui_name] ---@type LuaGuiElement?
     if not frame then return end
     if not entity.valid or player.opened ~= entity then return end
@@ -125,11 +133,7 @@ function tower_gui.on_gui_changed(player)
         tower.read_mature_plants_signal = nil
     end
 
-    -- Refresh this GUI for every player who has the same entity open
-    for _, each_player in pairs(game.players) do
-        tower_gui.refresh(each_player, entity)
-    end
-
+    tower_gui.refresh(nil, entity)
     tower:on_control_settings_updated()
 end
 

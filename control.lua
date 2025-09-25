@@ -205,6 +205,9 @@ script.on_event(defines.events.on_entity_settings_pasted,
             ExtendedTower.is_ghost_agricultural_tower(event.destination)
         then
             ExtendedTower.copy_settings(event.source, event.destination)
+            if ExtendedTower.is_agricultural_tower(event.destination) then
+                tower_gui.refresh(nil, event.destination)
+            end
         end
     end
 )
