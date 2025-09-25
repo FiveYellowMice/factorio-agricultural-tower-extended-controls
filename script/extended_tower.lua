@@ -90,7 +90,7 @@ end
 ---@param entity LuaEntity
 ---@return boolean
 function ExtendedTower.is_ghost_agricultural_tower(entity)
-    return entity.ghost_type == "agricultural-tower"
+    return entity.type == "entity-ghost" and entity.ghost_type == "agricultural-tower"
 end
 
 ---@param prototype LuaEntityPrototype
@@ -114,15 +114,27 @@ ExtendedTower.agricultural_tower_event_filter = {
 }
 
 ---Called when an agricultural tower is cloned or settings copied.
+---Either argument may be ghost.
 ---@param source LuaEntity
 ---@param destination LuaEntity
 function ExtendedTower.on_tower_copied(source, destination)
-    local src_tower = ExtendedTower.get(source)
-    if not src_tower then return end
+    local tags = nil
+    if ExtendedTower.is_ghost_agricultural_tower(source) then
+        tags = source.tags
+    else
+        local src_tower = ExtendedTower.get(source)
+        if not src_tower then return end
+        tags = src_tower:export_control_settings()
+    end
 
-    local dst_tower = ExtendedTower.get_or_create(destination)
-    local tags = src_tower:export_control_settings()
-    dst_tower:import_control_settings(tags)
+    if not tags then return end
+
+    if ExtendedTower.is_ghost_agricultural_tower(destination) then
+        destination.tags = tags
+    else
+        local dst_tower = ExtendedTower.get_or_create(destination)
+        dst_tower:import_control_settings(tags)
+    end
 end
 
 ---@param plant LuaEntity

@@ -165,7 +165,10 @@ script.on_event(defines.events.script_raised_destroy, mined_entity_handler, mine
 
 script.on_event(defines.events.on_entity_settings_pasted,
     function(event)
-        if ExtendedTower.is_agricultural_tower(event.destination) then
+        if
+            ExtendedTower.is_agricultural_tower(event.destination) or
+            ExtendedTower.is_ghost_agricultural_tower(event.destination)
+        then
             ExtendedTower.on_tower_copied(event.source, event.destination)
         end
     end
