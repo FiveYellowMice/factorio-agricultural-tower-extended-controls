@@ -2,7 +2,7 @@
 
 local constants = require("constants")
 local ExtendedTower = require("script.extended_tower")
-local util = require("util")
+local util = require("script.util")
 
 local tower_gui = {}
 

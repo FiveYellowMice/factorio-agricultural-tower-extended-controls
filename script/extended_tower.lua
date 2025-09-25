@@ -2,6 +2,7 @@
 -- Resides in storage.
 
 local constants = require("constants")
+local util = require("script.util")
 local tower_index = require("script.tower_index")
 local callback_timer = require("script.callback_timer")
 local OutputCombinator = require("script.output_combinator")
@@ -109,17 +110,19 @@ function ExtendedTower.is_blueprint_agricultural_tower(entity)
 end
 
 ExtendedTower.agricultural_tower_event_filter = {
-    filter = "type",
-    type = "agricultural-tower",
+    {
+        filter = "type",
+        type = "agricultural-tower",
+    },
 }
 
----Called when an agricultural tower is cloned or settings copied.
----Either argument may be ghost.
----@param source LuaEntity
----@param destination LuaEntity
-function ExtendedTower.on_tower_copied(source, destination)
+---Copy extended control settings.
+---@param source LuaEntity | uint64 An agricultural tower, a ghost of one, or a unit number of one
+---@param destination LuaEntity An agricultural tower or a ghost of one.
+function ExtendedTower.copy_settings(source, destination)
+    -- Obtain settings from source
     local tags = nil
-    if ExtendedTower.is_ghost_agricultural_tower(source) then
+    if source.object_name == "LuaEntity" and ExtendedTower.is_ghost_agricultural_tower(source) then
         tags = source.tags
     else
         local src_tower = ExtendedTower.get(source)
@@ -127,14 +130,26 @@ function ExtendedTower.on_tower_copied(source, destination)
         tags = src_tower:export_control_settings()
     end
 
-    if not tags then return end
+    if not tags or not ExtendedTower.has_relavant_tags(tags) then return end
 
+    -- Apply settings to destination
     if ExtendedTower.is_ghost_agricultural_tower(destination) then
-        destination.tags = tags
-    else
+        destination.tags = util.shallow_merge{destination.tags, tags}
+    elseif ExtendedTower.is_agricultural_tower(destination) then
         local dst_tower = ExtendedTower.get_or_create(destination)
         dst_tower:import_control_settings(tags)
     end
+end
+
+---@param tags Tags
+---@return boolean
+function ExtendedTower.has_relavant_tags(tags)
+    for tag_name, _ in pairs(tags) do
+        if util.string_starts_with(tag_name, constants.entity_tag_prefix) then
+            return true
+        end
+    end
+    return false
 end
 
 ---@param plant LuaEntity

@@ -1,5 +1,5 @@
 local constants = require("constants")
-local util = require("util")
+local util = require("script.util")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
 local OutputCombinator = require("script.output_combinator")
@@ -107,17 +107,33 @@ local function built_entity_handler(event)
 
     elseif ExtendedTower.is_agricultural_tower(entity) then
         if event.name == defines.events.on_entity_cloned and event.source then
-            ExtendedTower.on_tower_copied(event.source, entity)
-        elseif event.tags then
-            -- Inherit settings from ghost tags
+            ExtendedTower.copy_settings(event.source, entity)
+        elseif event.tags and ExtendedTower.has_relavant_tags(event.tags) then
+            -- Inherit control settings from ghost tags
             ExtendedTower.get_or_create(entity):import_control_settings(event.tags)
+        end
+        if event.player_index then
+            -- Inherit control settings onto the undo action
+            local tower = ExtendedTower.get(entity)
+            if tower then
+                callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
+                    build = true,
+                    tags = tower:export_control_settings(),
+                    player_index = event.player_index,
+                    name = entity.name,
+                    quality = entity.quality.name,
+                    position = entity.position,
+                }--[[@as TowerSetingsTransferToUndoActionData]]})
+            end
         end
     end
 end
-local built_entity_filter = {
+local built_entity_filter = util.array_concat{
     {
-        filter = "type",
-        type = "plant",
+        {
+            filter = "type",
+            type = "plant",
+        },
     },
     ExtendedTower.agricultural_tower_event_filter,
 }
@@ -145,13 +161,32 @@ local function mined_entity_handler(event)
 
     if entity.type == 'plant' then
         ExtendedTower.on_plant_mined(entity)
+
+    elseif ExtendedTower.is_agricultural_tower(entity) then
+        if event.player_index then
+            -- Inherit control settings onto the undo action
+            local tower = ExtendedTower.get(entity)
+            if tower then
+                callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
+                    build = false,
+                    tags = tower:export_control_settings(),
+                    player_index = event.player_index,
+                    name = entity.name,
+                    quality = entity.quality.name,
+                    position = entity.position,
+                }--[[@as TowerSetingsTransferToUndoActionData]]})
+            end
+        end
     end
 end
-local mined_entity_filter = {
+local mined_entity_filter = util.array_concat{
     {
-        filter = "type",
-        type = "plant",
+        {
+            filter = "type",
+            type = "plant",
+        },
     },
+    ExtendedTower.agricultural_tower_event_filter,
 }
 script.on_event(defines.events.on_tower_mined_plant, mined_entity_handler)
 script.on_event(defines.events.on_player_mined_entity, mined_entity_handler, mined_entity_filter)
@@ -169,7 +204,7 @@ script.on_event(defines.events.on_entity_settings_pasted,
             ExtendedTower.is_agricultural_tower(event.destination) or
             ExtendedTower.is_ghost_agricultural_tower(event.destination)
         then
-            ExtendedTower.on_tower_copied(event.source, event.destination)
+            ExtendedTower.copy_settings(event.source, event.destination)
         end
     end
 )
@@ -197,7 +232,7 @@ script.on_event(defines.events.on_player_setup_blueprint,
             local src_tower = ExtendedTower.get(src_entity)
             if not src_tower then goto continue end
 
-            blueprint.set_blueprint_entity_tags(entity.entity_number, util.merge{
+            blueprint.set_blueprint_entity_tags(entity.entity_number, util.shallow_merge{
                 blueprint.get_blueprint_entity_tags(entity.entity_number) or {},
                 src_tower:export_control_settings()
             })
@@ -211,18 +246,67 @@ script.on_event(defines.events.on_post_entity_died,
         if ExtendedTower.is_prototype_agricultural_tower(event.prototype) then
             if not event.unit_number or not event.ghost then return end
             -- Inherit extended control settings onto the ghost
-            -- Because ExtendedTower instances are removed at the end of the tick, we can still get
-            -- one, albeit with an invalid entity.
-            local tower = ExtendedTower.get(event.unit_number)
-            if not tower then return end
-
-            event.ghost.tags = util.merge{
-                event.ghost.tags or {},
-                tower:export_control_settings()
-            }
+            -- Because ExtendedTower instances are removed at the end of the tick, we can use the
+            -- unit number to obtain one, albeit with an invalid entity.
+            ExtendedTower.copy_settings(event.unit_number, event.ghost)
         end
     end,
-    {ExtendedTower.agricultural_tower_event_filter}
+    ExtendedTower.agricultural_tower_event_filter
+)
+
+script.on_event(defines.events.on_marked_for_deconstruction,
+    function(event)
+        if event.player_index then
+            -- Inherit control settings onto the undo action
+            local tower = ExtendedTower.get(event.entity)
+            if tower then
+                callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
+                    build = false,
+                    tags = tower:export_control_settings(),
+                    player_index = event.player_index,
+                    name = event.entity.name,
+                    quality = event.entity.quality.name,
+                    position = event.entity.position,
+                }--[[@as TowerSetingsTransferToUndoActionData]]})
+            end
+        end
+    end,
+    ExtendedTower.agricultural_tower_event_filter
+)
+
+---@class TowerSetingsTransferToUndoActionData
+---@field build
+---| true #Look for a build undo action
+---| false #Look for a remove undo action
+---@field tags Tags Tags to save
+---@field player_index uint32
+---@field name string Prototype name of the built or removed entity
+---@field quality string Quality prototype name of the built or removed entity
+---@field position MapPosition Position of the built or removed entity
+
+-- Look for the most recent undo action on the tower of interest and save tags onto it
+callback_timer.register_action("tower_settings_transfer_to_undo",
+    ---@param data TowerSetingsTransferToUndoActionData
+    function (data)
+        local player = game.get_player(data.player_index)
+        if not player then return end
+        local undo_item = player.undo_redo_stack.get_undo_item(1)
+        if not undo_item then return end
+        for action_index, action in ipairs(undo_item) do
+            if
+                (data.build and action.type == "built-entity" or not data.build and action.type == "removed-entity") and
+                ExtendedTower.is_blueprint_agricultural_tower(action.target) and
+                -- Best-effort check for whether this action refers to the same entity as the event
+                action.target.name == data.name and
+                (action.target.quality or "normal") == data.quality and
+                action.target.position.x == data.position.x and action.target.position.y == data.position.y
+            then
+                for k, v in pairs(data.tags) do
+                    player.undo_redo_stack.set_undo_tag(1, action_index, k, v)
+                end
+            end
+        end
+    end
 )
 
 
