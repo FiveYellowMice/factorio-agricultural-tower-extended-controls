@@ -1,6 +1,7 @@
 -- Representation of an agricultural tower with our extended states.
 -- Resides in storage.
 
+local constants = require("constants")
 local tower_index = require("script.tower_index")
 local callback_timer = require("script.callback_timer")
 local OutputCombinator = require("script.output_combinator")
@@ -86,6 +87,27 @@ function ExtendedTower.is_agricultural_tower(entity)
     return entity.type == "agricultural-tower"
 end
 
+---@param entity LuaEntity
+---@return boolean
+function ExtendedTower.is_ghost_agricultural_tower(entity)
+    return entity.ghost_type == "agricultural-tower"
+end
+
+---@param prototype LuaEntityPrototype
+---@return boolean
+---@diagnostic disable-next-line: redefined-local
+function ExtendedTower.is_prototype_agricultural_tower(prototype)
+    return prototype.type == "agricultural-tower"
+end
+
+---@param entity BlueprintEntity
+---@return boolean
+function ExtendedTower.is_blueprint_agricultural_tower(entity)
+    ---@diagnostic disable-next-line: redefined-local
+    local prototype = prototypes.entity[entity.name]
+    return prototype ~= nil and ExtendedTower.is_prototype_agricultural_tower(prototype)
+end
+
 ExtendedTower.agricultural_tower_event_filter = {
     filter = "type",
     type = "agricultural-tower",
@@ -99,10 +121,8 @@ function ExtendedTower.on_tower_copied(source, destination)
     if not src_tower then return end
 
     local dst_tower = ExtendedTower.get_or_create(destination)
-    dst_tower.read_mature_plants_enabled = src_tower.read_mature_plants_enabled
-    dst_tower.read_mature_plants_signal = src_tower.read_mature_plants_signal
-
-    dst_tower:on_control_settings_updated()
+    local tags = src_tower:export_control_settings()
+    dst_tower:import_control_settings(tags)
 end
 
 ---@param plant LuaEntity
@@ -162,6 +182,33 @@ function prototype:on_control_settings_updated()
             self.output_combinator = nil
         end
     end
+end
+
+---Export the extended control settings as tags, to be stored in ghosts/blueprints.
+---@return Tags
+function prototype:export_control_settings()
+    return {
+        [constants.entity_tag_prefix.."read_mature_plants_enabled"] = self.read_mature_plants_enabled,
+        [constants.entity_tag_prefix.."read_mature_plants_signal"] = self.read_mature_plants_signal,
+    }
+end
+
+---Import the extended control settings from tags, that was in ghosts/blueprints.
+---@param tags Tags
+function prototype:import_control_settings(tags)
+    self.read_mature_plants_enabled = not not tags[constants.entity_tag_prefix.."read_mature_plants_enabled"]
+
+    if type(tags[constants.entity_tag_prefix.."read_mature_plants_signal"]) == "table" then
+        self.read_mature_plants_signal = {
+            type = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].type,
+            name = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].name,
+            quality = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].quality,
+        }
+    else
+        self.read_mature_plants_signal = nil
+    end
+
+    self:on_control_settings_updated()
 end
 
 function prototype:recount_mature_plants()
