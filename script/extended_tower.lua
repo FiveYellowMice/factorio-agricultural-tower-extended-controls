@@ -107,7 +107,7 @@ end
 
 ---@param plant LuaEntity
 function ExtendedTower.on_plant_grown(plant)
-    local tower_ids = tower_index.get_towers_ids(plant.position)
+    local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
         if tower and tower:valid() and tower.read_mature_plants_enabled then
@@ -129,7 +129,7 @@ callback_timer.register_action("recount_mature_plants",
 
 ---@param plant LuaEntity
 function ExtendedTower.on_plant_mined(plant)
-    local tower_ids = tower_index.get_towers_ids(plant.position)
+    local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
         if tower and tower:valid() and tower.read_mature_plants_enabled then
