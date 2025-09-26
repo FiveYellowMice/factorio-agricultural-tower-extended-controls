@@ -107,18 +107,19 @@ local function built_entity_handler(event)
 
     elseif ExtendedTower.is_agricultural_tower(entity) then
         if event.name == defines.events.on_entity_cloned and event.source then
-            ExtendedTower.copy_settings(event.source, entity)
-        elseif event.tags and ExtendedTower.has_relavant_tags(event.tags) then
+            ExtendedTower.copy_control_settings(event.source, entity)
+        elseif event.tags and type(event.tags[constants.entity_tag_control_settings]) == "table" then
             -- Inherit control settings from ghost tags
-            ExtendedTower.get_or_create(entity):import_control_settings(event.tags)
+            local tower = ExtendedTower.get_or_create(entity)
+            tower:import_control_settings(event.tags[constants.entity_tag_control_settings]--[[@as ExtendedTowerControlSettings]])
         end
         if event.player_index then
             -- Inherit control settings onto the undo action
-            local tower = ExtendedTower.get(entity)
-            if tower then
+            local control_settings = ExtendedTower.get_control_settings(entity)
+            if control_settings then
                 callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
                     build = true,
-                    tags = tower:export_control_settings(),
+                    control_settings = control_settings,
                     player_index = event.player_index,
                     name = entity.name,
                     quality = entity.quality.name,
@@ -165,11 +166,11 @@ local function mined_entity_handler(event)
     elseif ExtendedTower.is_agricultural_tower(entity) then
         if event.player_index then
             -- Inherit control settings onto the undo action
-            local tower = ExtendedTower.get(entity)
-            if tower then
+            local control_settings = ExtendedTower.get_control_settings(entity)
+            if control_settings then
                 callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
                     build = false,
-                    tags = tower:export_control_settings(),
+                    control_settings = control_settings,
                     player_index = event.player_index,
                     name = entity.name,
                     quality = entity.quality.name,
@@ -204,7 +205,7 @@ script.on_event(defines.events.on_entity_settings_pasted,
             ExtendedTower.is_agricultural_tower(event.destination) or
             ExtendedTower.is_ghost_agricultural_tower(event.destination)
         then
-            ExtendedTower.copy_settings(event.source, event.destination)
+            ExtendedTower.copy_control_settings(event.source, event.destination)
             if ExtendedTower.is_agricultural_tower(event.destination) then
                 tower_gui.refresh(nil, event.destination)
             end
@@ -232,13 +233,10 @@ script.on_event(defines.events.on_player_setup_blueprint,
             if not ExtendedTower.is_blueprint_agricultural_tower(entity) then goto continue end
             local src_entity = event.mapping.get()[entity.entity_number]--[[@as LuaEntity?]]
             if not src_entity or not ExtendedTower.is_agricultural_tower(src_entity) then goto continue end
-            local src_tower = ExtendedTower.get(src_entity)
-            if not src_tower then goto continue end
+            local control_settings = ExtendedTower.get_control_settings(src_entity)
+            if not control_settings then goto continue end
 
-            blueprint.set_blueprint_entity_tags(entity.entity_number, util.shallow_merge{
-                blueprint.get_blueprint_entity_tags(entity.entity_number) or {},
-                src_tower:export_control_settings()
-            })
+            blueprint.set_blueprint_entity_tag(entity.entity_number, constants.entity_tag_control_settings, control_settings)
             ::continue::
         end
     end
@@ -251,7 +249,7 @@ script.on_event(defines.events.on_post_entity_died,
             -- Inherit extended control settings onto the ghost
             -- Because ExtendedTower instances are removed at the end of the tick, we can use the
             -- unit number to obtain one, albeit with an invalid entity.
-            ExtendedTower.copy_settings(event.unit_number, event.ghost)
+            ExtendedTower.copy_control_settings(event.unit_number, event.ghost)
         end
     end,
     ExtendedTower.agricultural_tower_event_filter
@@ -261,11 +259,11 @@ script.on_event(defines.events.on_marked_for_deconstruction,
     function(event)
         if event.player_index then
             -- Inherit control settings onto the undo action
-            local tower = ExtendedTower.get(event.entity)
-            if tower then
+            local control_settings = ExtendedTower.get_control_settings(event.entity)
+            if control_settings then
                 callback_timer.add(game.tick + 1, {action = "tower_settings_transfer_to_undo", data = {
                     build = false,
-                    tags = tower:export_control_settings(),
+                    control_settings = control_settings,
                     player_index = event.player_index,
                     name = event.entity.name,
                     quality = event.entity.quality.name,
@@ -281,7 +279,7 @@ script.on_event(defines.events.on_marked_for_deconstruction,
 ---@field build
 ---| true #Look for a build undo action
 ---| false #Look for a remove undo action
----@field tags Tags Tags to save
+---@field control_settings ExtendedTowerControlSettings Extended control settings to transfer
 ---@field player_index uint32
 ---@field name string Prototype name of the built or removed entity
 ---@field quality string Quality prototype name of the built or removed entity
@@ -304,9 +302,7 @@ callback_timer.register_action("tower_settings_transfer_to_undo",
                 (action.target.quality or "normal") == data.quality and
                 action.target.position.x == data.position.x and action.target.position.y == data.position.y
             then
-                for k, v in pairs(data.tags) do
-                    player.undo_redo_stack.set_undo_tag(1, action_index, k, v)
-                end
+                player.undo_redo_stack.set_undo_tag(1, action_index, constants.entity_tag_control_settings, data.control_settings)
             end
         end
     end

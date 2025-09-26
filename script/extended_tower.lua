@@ -9,6 +9,7 @@ local OutputCombinator = require("script.output_combinator")
 
 local ExtendedTower = {}
 
+---Control settings managed by this mod. Value copiable, storable in tags.
 ---@class ExtendedTowerControlSettings
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
@@ -122,40 +123,42 @@ ExtendedTower.agricultural_tower_event_filter = {
     },
 }
 
----Copy extended control settings.
----@param source LuaEntity | uint64 An agricultural tower, a ghost of one, or a unit number of one
----@param destination LuaEntity An agricultural tower or a ghost of one.
-function ExtendedTower.copy_settings(source, destination)
-    -- Obtain settings from source
-    local tags = nil
-    if source.object_name == "LuaEntity" and ExtendedTower.is_ghost_agricultural_tower(source) then
-        tags = source.tags
-    else
-        local src_tower = ExtendedTower.get(source)
-        if not src_tower then return end
-        tags = src_tower:export_control_settings()
+---Get the extended control settings of a tower or a ghost.
+---@param entity LuaEntity | uint64 An agricultural tower, a ghost of one, or a unit number of one.
+---@return ExtendedTowerControlSettings?
+function ExtendedTower.get_control_settings(entity)
+    if type(entity) == "number" --[[@cast entity LuaEntity]] or ExtendedTower.is_agricultural_tower(entity) then
+        local tower = ExtendedTower.get(entity)
+        if tower then
+            return util.table.deepcopy(tower.control_settings)
+        end
+        return
     end
+    ---@cast entity LuaEntity
 
-    if not tags or not ExtendedTower.has_relavant_tags(tags) then return end
-
-    -- Apply settings to destination
-    if ExtendedTower.is_ghost_agricultural_tower(destination) then
-        destination.tags = util.shallow_merge{destination.tags, tags}
-    elseif ExtendedTower.is_agricultural_tower(destination) then
-        local dst_tower = ExtendedTower.get_or_create(destination)
-        dst_tower:import_control_settings(tags)
+    if ExtendedTower.is_ghost_agricultural_tower(entity) then 
+        if entity.tags and type(entity.tags[constants.entity_tag_control_settings]) == "table" then
+            return entity.tags[constants.entity_tag_control_settings] --[[@as ExtendedTowerControlSettings]]
+        end
     end
 end
 
----@param tags Tags
----@return boolean
-function ExtendedTower.has_relavant_tags(tags)
-    for tag_name, _ in pairs(tags) do
-        if util.string_starts_with(tag_name, constants.entity_tag_prefix) then
-            return true
-        end
+---Copy extended control settings.
+---@param source LuaEntity | uint64 An agricultural tower, a ghost of one, or a unit number of one.
+---@param destination LuaEntity An agricultural tower or a ghost of one.
+function ExtendedTower.copy_control_settings(source, destination)
+    local control_settings = ExtendedTower.get_control_settings(source)
+    if not control_settings then return end
+
+    -- Apply settings to destination
+    if ExtendedTower.is_ghost_agricultural_tower(destination) then
+        local tags = destination.tags or {}
+        tags[constants.entity_tag_control_settings] = control_settings
+        destination.tags = tags
+    elseif ExtendedTower.is_agricultural_tower(destination) then
+        local dst_tower = ExtendedTower.get_or_create(destination)
+        dst_tower:import_control_settings(control_settings)
     end
-    return false
 end
 
 ---@param plant LuaEntity
@@ -217,30 +220,9 @@ function prototype:on_control_settings_updated()
     end
 end
 
----Export the extended control settings as tags, to be stored in ghosts/blueprints.
----@return Tags
-function prototype:export_control_settings()
-    return {
-        [constants.entity_tag_prefix.."read_mature_plants_enabled"] = self.control_settings.read_mature_plants_enabled,
-        [constants.entity_tag_prefix.."read_mature_plants_signal"] = self.control_settings.read_mature_plants_signal,
-    }
-end
-
----Import the extended control settings from tags, that was in ghosts/blueprints.
----@param tags Tags
-function prototype:import_control_settings(tags)
-    self.control_settings.read_mature_plants_enabled = not not tags[constants.entity_tag_prefix.."read_mature_plants_enabled"]
-
-    if type(tags[constants.entity_tag_prefix.."read_mature_plants_signal"]) == "table" then
-        self.control_settings.read_mature_plants_signal = {
-            type = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].type,
-            name = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].name,
-            quality = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].quality,
-        }
-    else
-        self.control_settings.read_mature_plants_signal = nil
-    end
-
+---@param control_settings ExtendedTowerControlSettings
+function prototype:import_control_settings(control_settings)
+    self.control_settings = util.table.deepcopy(control_settings)
     self:on_control_settings_updated()
 end
 
