@@ -36,9 +36,14 @@ script.on_event(defines.events.on_tick,
 
 script.on_event(defines.events.on_gui_opened,
     function(event)
-        if event.gui_type ~= defines.gui_type.entity or not event.entity or not event.entity.valid or not ExtendedTower.is_agricultural_tower(event.entity) then
+        if
+            event.gui_type ~= defines.gui_type.entity or
+            not event.entity or not event.entity.valid or
+            not (ExtendedTower.is_agricultural_tower(event.entity) or ExtendedTower.is_ghost_agricultural_tower(event.entity))
+        then
             return
         end
+
         local player = game.get_player(event.player_index)
         if not player then return end
 
@@ -49,9 +54,14 @@ script.on_event(defines.events.on_gui_opened,
 
 script.on_event(defines.events.on_gui_closed,
     function(event)
-        if event.gui_type ~= defines.gui_type.entity or not event.entity or not event.entity.valid or not ExtendedTower.is_agricultural_tower(event.entity) then
+        if
+            event.gui_type ~= defines.gui_type.entity or
+            not event.entity or not event.entity.valid or
+            not (ExtendedTower.is_agricultural_tower(event.entity) or ExtendedTower.is_ghost_agricultural_tower(event.entity))
+        then
             return
         end
+
         local player = game.get_player(event.player_index)
         if not player then return end
 
@@ -107,11 +117,11 @@ local function built_entity_handler(event)
 
     elseif ExtendedTower.is_agricultural_tower(entity) then
         if event.name == defines.events.on_entity_cloned and event.source then
-            ExtendedTower.copy_control_settings(event.source, entity)
+            local control_settings = ExtendedTower.get_control_settings(event.source)
+            if control_settings then ExtendedTower.set_control_settings(entity, control_settings) end
         elseif event.tags and type(event.tags[constants.entity_tag_control_settings]) == "table" then
             -- Inherit control settings from ghost tags
-            local tower = ExtendedTower.get_or_create(entity)
-            tower:import_control_settings(event.tags[constants.entity_tag_control_settings]--[[@as ExtendedTowerControlSettings]])
+            ExtendedTower.set_control_settings(entity, event.tags[constants.entity_tag_control_settings]--[[@as ExtendedTowerControlSettings]])
         end
         if event.player_index then
             -- Inherit control settings onto the undo action
@@ -205,8 +215,9 @@ script.on_event(defines.events.on_entity_settings_pasted,
             ExtendedTower.is_agricultural_tower(event.destination) or
             ExtendedTower.is_ghost_agricultural_tower(event.destination)
         then
-            ExtendedTower.copy_control_settings(event.source, event.destination)
-            if ExtendedTower.is_agricultural_tower(event.destination) then
+            local control_settings = ExtendedTower.get_control_settings(event.source)
+            if control_settings then
+                ExtendedTower.set_control_settings(event.destination, control_settings)
                 tower_gui.refresh(nil, event.destination)
             end
         end
@@ -249,7 +260,8 @@ script.on_event(defines.events.on_post_entity_died,
             -- Inherit extended control settings onto the ghost
             -- Because ExtendedTower instances are removed at the end of the tick, we can use the
             -- unit number to obtain one, albeit with an invalid entity.
-            ExtendedTower.copy_control_settings(event.unit_number, event.ghost)
+            local control_settings = ExtendedTower.get_control_settings(event.unit_number)
+            if control_settings then ExtendedTower.set_control_settings(event.ghost, control_settings) end
         end
     end,
     ExtendedTower.agricultural_tower_event_filter

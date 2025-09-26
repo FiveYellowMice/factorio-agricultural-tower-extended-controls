@@ -23,11 +23,20 @@ end
 ---@param entity LuaEntity
 ---@return LuaGuiElement?
 function tower_gui.create(player, entity)
-    if not entity.valid or not ExtendedTower.is_agricultural_tower(entity) then return end
+    if
+        not entity.valid or
+        not (ExtendedTower.is_agricultural_tower(entity) or ExtendedTower.is_ghost_agricultural_tower(entity))
+    then
+        return
+    end
 
     -- No GUI when entity is not connected to circuit
-    local circuit_connected = entity.get_circuit_network(defines.wire_connector_id.circuit_red) or entity.get_circuit_network(defines.wire_connector_id.circuit_green)
-    if not circuit_connected then return end
+    for _, id in ipairs{defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green} do
+        local connector = entity.get_wire_connector(id, false)
+        if connector and connector.connection_count > 0 then goto circuit_connected end
+    end
+    do return end
+    ::circuit_connected::
 
     local outer_frame = player.gui.relative.add{
         type = "frame",
@@ -104,13 +113,14 @@ function tower_gui.refresh(player, entity)
     local frame = player.gui.relative[constants.gui_name] ---@type LuaGuiElement?
     if not frame then return end
     if not entity.valid or player.opened ~= entity then return end
-    local tower = ExtendedTower.get_or_create(entity)
 
-    frame["inner-frame"]["read-mature-plants-checkbox"].state = tower.control_settings.read_mature_plants_enabled
-    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value = tower.control_settings.read_mature_plants_signal
+    local control_settings = ExtendedTower.get_control_settings(entity) or ExtendedTower.default_control_settings
 
-    frame["inner-frame"]["read-mature-plants-signal-table"]["label"].enabled = tower.control_settings.read_mature_plants_enabled
-    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].enabled = tower.control_settings.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-checkbox"].state = control_settings.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value = control_settings.read_mature_plants_signal
+
+    frame["inner-frame"]["read-mature-plants-signal-table"]["label"].enabled = control_settings.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].enabled = control_settings.read_mature_plants_enabled
 end
 
 ---Called when any relavant input element has changed.
@@ -120,21 +130,29 @@ function tower_gui.on_gui_changed(player)
     if not frame then return end
     if not player.opened or player.opened.object_name ~= "LuaEntity" then return end
     local entity = player.opened--[[@as LuaEntity]]
-    if not ExtendedTower.is_agricultural_tower(entity) then return end
-    local tower = ExtendedTower.get_or_create(entity)
+    if not ExtendedTower.is_agricultural_tower(entity) and not ExtendedTower.is_ghost_agricultural_tower(entity) then return end
 
-    -- Save input values to storage
-    tower.control_settings.read_mature_plants_enabled = frame["inner-frame"]["read-mature-plants-checkbox"].state
-    tower.control_settings.read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID]]
+    -- Read control settings from GUI input
+    ---@type ExtendedTowerControlSettings
+    local control_settings = {
+        read_mature_plants_enabled = frame["inner-frame"]["read-mature-plants-checkbox"].state,
+        read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID]],
+    }
 
     -- Reject meta signals
     local meta_signals_names = util.list_to_map{"signal-everything", "signal-anything", "signal-each"}
-    if tower.control_settings.read_mature_plants_signal and tower.control_settings.read_mature_plants_signal.type == "virtual" and meta_signals_names[tower.control_settings.read_mature_plants_signal.name] then
-        tower.control_settings.read_mature_plants_signal = nil
+    if
+        control_settings.read_mature_plants_signal and
+        control_settings.read_mature_plants_signal.type == "virtual" and
+        meta_signals_names[control_settings.read_mature_plants_signal.name]
+    then
+        control_settings.read_mature_plants_signal = nil
     end
 
+    -- Save to entity
+    ExtendedTower.set_control_settings(entity, control_settings)
+
     tower_gui.refresh(nil, entity)
-    tower:on_control_settings_updated()
 end
 
 return tower_gui

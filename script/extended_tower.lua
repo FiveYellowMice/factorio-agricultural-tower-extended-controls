@@ -10,9 +10,13 @@ local OutputCombinator = require("script.output_combinator")
 local ExtendedTower = {}
 
 ---Control settings managed by this mod. Value copiable, storable in tags.
----@class ExtendedTowerControlSettings
+---@class (exact) ExtendedTowerControlSettings
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
+ExtendedTower.default_control_settings = {
+    read_mature_plants_enabled = false,
+    read_mature_plants_signal = nil,
+}
 
 ---@class ExtendedTower
 ---@field entity LuaEntity
@@ -43,10 +47,7 @@ function ExtendedTower.create(entity)
 
     local instance = setmetatable({
         entity = entity,
-        control_settings = {
-            read_mature_plants_enabled = false,
-            read_mature_plants_signal = nil,
-        },
+        control_settings = util.table.deepcopy(ExtendedTower.default_control_settings),
         mature_plant_count = 0,
     }, ExtendedTower.prototype)
 
@@ -130,7 +131,7 @@ function ExtendedTower.get_control_settings(entity)
     if type(entity) == "number" --[[@cast entity LuaEntity]] or ExtendedTower.is_agricultural_tower(entity) then
         local tower = ExtendedTower.get(entity)
         if tower then
-            return util.table.deepcopy(tower.control_settings)
+            return tower:get_control_settings()
         end
         return
     end
@@ -143,21 +144,18 @@ function ExtendedTower.get_control_settings(entity)
     end
 end
 
----Copy extended control settings.
----@param source LuaEntity | uint64 An agricultural tower, a ghost of one, or a unit number of one.
----@param destination LuaEntity An agricultural tower or a ghost of one.
-function ExtendedTower.copy_control_settings(source, destination)
-    local control_settings = ExtendedTower.get_control_settings(source)
-    if not control_settings then return end
-
-    -- Apply settings to destination
-    if ExtendedTower.is_ghost_agricultural_tower(destination) then
-        local tags = destination.tags or {}
+---Set the extended control settings of a tower or a ghost.
+---@param entity LuaEntity An agricultural tower or a ghost of one.
+---@param control_settings ExtendedTowerControlSettings
+function ExtendedTower.set_control_settings(entity, control_settings)
+    if ExtendedTower.is_ghost_agricultural_tower(entity) then
+        local tags = entity.tags or {}
         tags[constants.entity_tag_control_settings] = control_settings
-        destination.tags = tags
-    elseif ExtendedTower.is_agricultural_tower(destination) then
-        local dst_tower = ExtendedTower.get_or_create(destination)
-        dst_tower:import_control_settings(control_settings)
+        entity.tags = tags
+
+    elseif ExtendedTower.is_agricultural_tower(entity) then
+        local dst_tower = ExtendedTower.get_or_create(entity)
+        dst_tower:set_control_settings(control_settings)
     end
 end
 
@@ -204,6 +202,17 @@ function prototype:valid()
     return self.entity.valid
 end
 
+---@return ExtendedTowerControlSettings
+function prototype:get_control_settings()
+    return util.table.deepcopy(self.control_settings)
+end
+
+---@param control_settings ExtendedTowerControlSettings
+function prototype:set_control_settings(control_settings)
+    self.control_settings = util.table.deepcopy(control_settings)
+    self:on_control_settings_updated()
+end
+
 ---Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
 function prototype:on_control_settings_updated()
     -- Create or destroy the output combinator
@@ -220,12 +229,8 @@ function prototype:on_control_settings_updated()
     end
 end
 
----@param control_settings ExtendedTowerControlSettings
-function prototype:import_control_settings(control_settings)
-    self.control_settings = util.table.deepcopy(control_settings)
-    self:on_control_settings_updated()
-end
-
+---Recount the number of mature plants from scratch.
+---Assumes entity is valid.
 function prototype:recount_mature_plants()
     local count = 0
     for _, plant in pairs(self.entity.owned_plants) do
