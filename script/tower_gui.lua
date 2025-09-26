@@ -106,11 +106,11 @@ function tower_gui.refresh(player, entity)
     if not entity.valid or player.opened ~= entity then return end
     local tower = ExtendedTower.get_or_create(entity)
 
-    frame["inner-frame"]["read-mature-plants-checkbox"].state = tower.read_mature_plants_enabled
-    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value = tower.read_mature_plants_signal
+    frame["inner-frame"]["read-mature-plants-checkbox"].state = tower.control_settings.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value = tower.control_settings.read_mature_plants_signal
 
-    frame["inner-frame"]["read-mature-plants-signal-table"]["label"].enabled = tower.read_mature_plants_enabled
-    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].enabled = tower.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-signal-table"]["label"].enabled = tower.control_settings.read_mature_plants_enabled
+    frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].enabled = tower.control_settings.read_mature_plants_enabled
 end
 
 ---Called when any relavant input element has changed.
@@ -124,13 +124,13 @@ function tower_gui.on_gui_changed(player)
     local tower = ExtendedTower.get_or_create(entity)
 
     -- Save input values to storage
-    tower.read_mature_plants_enabled = frame["inner-frame"]["read-mature-plants-checkbox"].state
-    tower.read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID]]
+    tower.control_settings.read_mature_plants_enabled = frame["inner-frame"]["read-mature-plants-checkbox"].state
+    tower.control_settings.read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID]]
 
     -- Reject meta signals
     local meta_signals_names = util.list_to_map{"signal-everything", "signal-anything", "signal-each"}
-    if tower.read_mature_plants_signal and tower.read_mature_plants_signal.type == "virtual" and meta_signals_names[tower.read_mature_plants_signal.name] then
-        tower.read_mature_plants_signal = nil
+    if tower.control_settings.read_mature_plants_signal and tower.control_settings.read_mature_plants_signal.type == "virtual" and meta_signals_names[tower.control_settings.read_mature_plants_signal.name] then
+        tower.control_settings.read_mature_plants_signal = nil
     end
 
     tower_gui.refresh(nil, entity)

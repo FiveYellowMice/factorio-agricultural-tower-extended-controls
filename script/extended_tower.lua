@@ -9,11 +9,14 @@ local OutputCombinator = require("script.output_combinator")
 
 local ExtendedTower = {}
 
----@class ExtendedTower
----@field entity LuaEntity
----@field output_combinator OutputCombinator?
+---@class ExtendedTowerControlSettings
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
+
+---@class ExtendedTower
+---@field entity LuaEntity
+---@field control_settings ExtendedTowerControlSettings
+---@field output_combinator OutputCombinator?
 ---@field mature_plant_count uint Valid only when read_mature_plants_enabled is true.
 local prototype = {}
 prototype.__index = prototype
@@ -39,7 +42,10 @@ function ExtendedTower.create(entity)
 
     local instance = setmetatable({
         entity = entity,
-        read_mature_plants_enabled = false,
+        control_settings = {
+            read_mature_plants_enabled = false,
+            read_mature_plants_signal = nil,
+        },
         mature_plant_count = 0,
     }, ExtendedTower.prototype)
 
@@ -157,7 +163,7 @@ function ExtendedTower.on_plant_grown(plant)
     local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
-        if tower and tower:valid() and tower.read_mature_plants_enabled then
+        if tower and tower:valid() and tower.control_settings.read_mature_plants_enabled then
             -- TODO: check if plant is witin tower range
             tower:recount_mature_plants()
         end
@@ -168,7 +174,7 @@ callback_timer.register_action("recount_mature_plants",
     ---@param unit_number uint64
     function(unit_number)
         local tower = ExtendedTower.get(unit_number)
-        if tower and tower:valid() and tower.read_mature_plants_enabled then
+        if tower and tower:valid() and tower.control_settings.read_mature_plants_enabled then
             tower:recount_mature_plants()
         end
     end
@@ -179,7 +185,7 @@ function ExtendedTower.on_plant_mined(plant)
     local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
-        if tower and tower:valid() and tower.read_mature_plants_enabled then
+        if tower and tower:valid() and tower.control_settings.read_mature_plants_enabled then
             -- TODO: check if plant is witin tower range
 
             -- This function gets called from events fired before the entity is actually destroyed
@@ -198,7 +204,7 @@ end
 ---Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
 function prototype:on_control_settings_updated()
     -- Create or destroy the output combinator
-    if self.read_mature_plants_enabled then
+    if self.control_settings.read_mature_plants_enabled then
         if not self.output_combinator then
             self.output_combinator = OutputCombinator.create(self.entity)
         end
@@ -215,24 +221,24 @@ end
 ---@return Tags
 function prototype:export_control_settings()
     return {
-        [constants.entity_tag_prefix.."read_mature_plants_enabled"] = self.read_mature_plants_enabled,
-        [constants.entity_tag_prefix.."read_mature_plants_signal"] = self.read_mature_plants_signal,
+        [constants.entity_tag_prefix.."read_mature_plants_enabled"] = self.control_settings.read_mature_plants_enabled,
+        [constants.entity_tag_prefix.."read_mature_plants_signal"] = self.control_settings.read_mature_plants_signal,
     }
 end
 
 ---Import the extended control settings from tags, that was in ghosts/blueprints.
 ---@param tags Tags
 function prototype:import_control_settings(tags)
-    self.read_mature_plants_enabled = not not tags[constants.entity_tag_prefix.."read_mature_plants_enabled"]
+    self.control_settings.read_mature_plants_enabled = not not tags[constants.entity_tag_prefix.."read_mature_plants_enabled"]
 
     if type(tags[constants.entity_tag_prefix.."read_mature_plants_signal"]) == "table" then
-        self.read_mature_plants_signal = {
+        self.control_settings.read_mature_plants_signal = {
             type = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].type,
             name = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].name,
             quality = tags[constants.entity_tag_prefix.."read_mature_plants_signal"].quality,
         }
     else
-        self.read_mature_plants_signal = nil
+        self.control_settings.read_mature_plants_signal = nil
     end
 
     self:on_control_settings_updated()
@@ -247,13 +253,13 @@ function prototype:recount_mature_plants()
     end
     self.mature_plant_count = count
 
-    if self.read_mature_plants_enabled and self.read_mature_plants_signal and self.output_combinator then
+    if self.control_settings.read_mature_plants_enabled and self.control_settings.read_mature_plants_signal and self.output_combinator then
         self.output_combinator:set_output({
             {
                 value = {
-                    type = self.read_mature_plants_signal.type,
-                    name = self.read_mature_plants_signal.name,
-                    quality = self.read_mature_plants_signal.quality or "normal",
+                    type = self.control_settings.read_mature_plants_signal.type,
+                    name = self.control_settings.read_mature_plants_signal.name,
+                    quality = self.control_settings.read_mature_plants_signal.quality or "normal",
                 },
                 min = self.mature_plant_count,
             }
