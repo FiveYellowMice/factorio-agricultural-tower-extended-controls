@@ -27,3 +27,9 @@ data.raw["gui-style"]["default"][constants.gui_style_prefix.."input_label"] = {
     type = "label_style",
     horizontally_stretchable = "on",
 }
+
+if settings.startup['debug'].value then
+    -- Make Gleba plants grow in 5 seconds
+    data.raw["plant"]["yumako-tree"].growth_ticks = 5 * 60
+    data.raw["plant"]["jellystem"].growth_ticks = 5 * 60
+end
