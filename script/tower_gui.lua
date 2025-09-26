@@ -23,7 +23,7 @@ end
 ---@param entity LuaEntity
 ---@return LuaGuiElement?
 function tower_gui.create(player, entity)
-    if not entity.valid or ExtendedTower.is_agricultural_tower(entity) then return end
+    if not entity.valid or not ExtendedTower.is_agricultural_tower(entity) then return end
 
     -- No GUI when entity is not connected to circuit
     local circuit_connected = entity.get_circuit_network(defines.wire_connector_id.circuit_red) or entity.get_circuit_network(defines.wire_connector_id.circuit_green)
