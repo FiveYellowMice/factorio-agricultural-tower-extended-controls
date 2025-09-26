@@ -4,7 +4,6 @@
 local constants = require("constants")
 local util = require("script.util")
 local tower_index = require("script.tower_index")
-local callback_timer = require("script.callback_timer")
 local OutputCombinator = require("script.output_combinator")
 
 local ExtendedTower = {}
@@ -171,16 +170,6 @@ function ExtendedTower.on_plant_grown(plant)
     end
 end
 
-callback_timer.register_action("recount_mature_plants",
-    ---@param unit_number uint64
-    function(unit_number)
-        local tower = ExtendedTower.get(unit_number)
-        if tower and tower:valid() and tower.control_settings.read_mature_plants_enabled then
-            tower:recount_mature_plants()
-        end
-    end
-)
-
 ---@param plant LuaEntity
 function ExtendedTower.on_plant_mined(plant)
     local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
@@ -190,9 +179,9 @@ function ExtendedTower.on_plant_mined(plant)
             -- TODO: check if plant is witin tower range
 
             -- This function gets called from events fired before the entity is actually destroyed
-            -- (else we wouldn't get a valid LuaEntity object), so recounting needs to happen 1 tick
-            -- after to not count the plant pending destruction.
-            callback_timer.add(game.tick + 1, {action = "recount_mature_plants", data = id})
+            -- (else we wouldn't get a valid LuaEntity object), so recounting needs to exclude the
+            -- entity pending destruction from being counted.
+            tower:recount_mature_plants(plant)
         end
     end
 end
@@ -231,12 +220,15 @@ end
 
 ---Recount the number of mature plants from scratch.
 ---Assumes entity is valid.
-function prototype:recount_mature_plants()
+---@param exclude LuaEntity? Exclude an entity from being counted, e.g. an entity pending destruction.
+function prototype:recount_mature_plants(exclude)
     local count = 0
     for _, plant in pairs(self.entity.owned_plants) do
+        if plant == exclude then goto continue end
         if game.tick >= plant.tick_grown then
             count = count + 1
         end
+        ::continue::
     end
     self.mature_plant_count = count
 
