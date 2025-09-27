@@ -23,7 +23,7 @@ end
 
 function prototype:make_create_entity_param(parent)
     local param = AuxiliaryEntity.prototype.make_create_entity_param(self, parent)
-    param.name = constants.output_combinator_name
+    param.name = constants.entity_output_combinator
     return param
 end
 

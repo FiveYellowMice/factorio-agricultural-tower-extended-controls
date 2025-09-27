@@ -2,7 +2,11 @@ local constants = {}
 
 constants.name_prefix = "agricultural_tower_extended_controls-"
 
-constants.output_combinator_name = constants.name_prefix.."output-combinator"
+constants.entity_output_combinator = constants.name_prefix.."output-combinator"
+constants.entity_harvest_disable_inserter = constants.name_prefix.."harvest-disable-inserter"
+constants.entity_harvest_disable_infinity_container = constants.name_prefix.."harvest-disable-infinity-container"
+constants.entity_harvest_disable_proxy_container = constants.name_prefix.."harvest-disable-proxy-container"
+
 constants.entity_tag_control_settings = constants.name_prefix.."control_settings"
 constants.gui_name = constants.name_prefix.."tower-gui"
 constants.gui_changed_event_enabled = constants.name_prefix.."changed-event-enabled"
