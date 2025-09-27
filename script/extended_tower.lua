@@ -207,7 +207,7 @@ function prototype:on_control_settings_updated()
     -- Create or destroy the output combinator
     if self.control_settings.read_mature_plants_enabled then
         if not self.output_combinator then
-            self.output_combinator = OutputCombinator.create(self.entity)
+            self.output_combinator = OutputCombinator:create(self.entity)
         end
         self:recount_mature_plants()
     else
@@ -219,7 +219,7 @@ function prototype:on_control_settings_updated()
 end
 
 ---Recount the number of mature plants from scratch.
----Assumes entity is valid.
+---Assumes tower entity is valid.
 ---@param exclude LuaEntity? Exclude an entity from being counted, e.g. an entity pending destruction.
 function prototype:recount_mature_plants(exclude)
     local count = 0
@@ -233,6 +233,7 @@ function prototype:recount_mature_plants(exclude)
     self.mature_plant_count = count
 
     if self.control_settings.read_mature_plants_enabled and self.control_settings.read_mature_plants_signal and self.output_combinator then
+        self.output_combinator:ensure_valid(self.entity)
         self.output_combinator:set_output({
             {
                 value = {

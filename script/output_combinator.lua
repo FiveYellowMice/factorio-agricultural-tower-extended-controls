@@ -2,39 +2,29 @@
 -- Controls the lifetime of the entity.
 
 local constants = require("constants")
+local AuxiliaryEntity = require("script.auxiliary_entity")
 
-local OutputCombinator = {}
+---@class OutputCombinator.class: AuxiliaryEntity.class
+---@field create fun(self: self, parent: LuaEntity): OutputCombinator
+local OutputCombinator = setmetatable({}, {__index = AuxiliaryEntity})
 
----@class OutputCombinator
----@field entity LuaEntity
-local prototype = {}
+---@class OutputCombinator: AuxiliaryEntity
+local prototype = setmetatable({}, {__index = AuxiliaryEntity.prototype})
 prototype.__index = prototype
 OutputCombinator.prototype = prototype
 
----@param parent LuaEntity
----@return OutputCombinator
-function OutputCombinator.create(parent)
-    local entity = parent.surface.create_entity{
-        name = constants.output_combinator_name,
-        position = parent.position,
-        force = parent.force,
-    }
-    ---@cast entity LuaEntity
-
-    entity.destructible = false
-    entity.minable_flag = false
+function prototype:create(parent)
+    AuxiliaryEntity.prototype.create(self, parent)
 
     for _, connector_id in ipairs{defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green} do
-        entity.get_wire_connector(connector_id, true).connect_to(parent.get_wire_connector(connector_id, true), false, defines.wire_origin.script)
+        self.entity.get_wire_connector(connector_id, true).connect_to(parent.get_wire_connector(connector_id, true), false, defines.wire_origin.script)
     end
-
-    return setmetatable({
-        entity = entity,
-    }, prototype)
 end
 
-function prototype:destroy()
-    self.entity.destroy()
+function prototype:make_create_entity_param(parent)
+    local param = AuxiliaryEntity.prototype.make_create_entity_param(self, parent)
+    param.name = constants.output_combinator_name
+    return param
 end
 
 ---@param content LogisticFilter[]
