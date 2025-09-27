@@ -12,9 +12,13 @@ data:extend{
             "not-blueprintable",
             "hide-alt-info",
             "not-flammable",
-            "not-selectable-in-game",
         },
         selectable_in_game = false,
+        allow_copy_paste = false,
+        collision_mask = {
+            layers = {},
+            not_colliding_with_itself = true,
+        },
         draw_copper_wires = false,
         draw_circuit_wires = false,
 
