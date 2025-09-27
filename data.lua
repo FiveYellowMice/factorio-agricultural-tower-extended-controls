@@ -67,9 +67,33 @@ data:extend{
 }
 
 
-data.raw["gui-style"]["default"][constants.gui_style_prefix.."input_label"] = {
+local gui_style = data.raw["gui-style"]["default"]
+
+gui_style[constants.gui_style_prefix.."input_label"] = {
     type = "label_style",
     horizontally_stretchable = "on",
+}
+
+gui_style[constants.gui_style_prefix.."circuit_condition_constant_textbox"] = {
+    type = "textbox_style",
+    width = 40,
+    height = 40,
+    left_margin = -4,
+
+    -- Format text inside
+    top_padding = 7,
+    bottom_padding = 7,
+    left_padding = 2,
+    right_padding = 2,
+    horizontal_align = "center",
+    vertical_align = "center",
+    font = "default-game",
+    font_color = {1, 1, 1},
+
+    -- Make it look like a slot button when not edited
+    default_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].default_graphical_set),
+    game_controller_hovered_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].hovered_graphical_set),
+    disabled_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].disabled_badge_graphical_set),
 }
 
 

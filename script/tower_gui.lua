@@ -54,11 +54,13 @@ function tower_gui.create(player, entity)
         style = "inside_shallow_frame_with_padding_and_vertical_spacing",
         direction = "vertical",
     }
+
     inner_frame.add{
         type = "checkbox",
         name = "read-mature-plants-checkbox",
         style = "caption_checkbox",
         caption = {"agricultural-tower-extended-controls.tower-gui-read-mature-plants-checkbox-label"},
+        tooltip = {"agricultural-tower-extended-controls.tower-gui-read-mature-plants-checkbox-tooltip"},
         state = false,
         tags = {
             [constants.gui_changed_event_enabled] = true,
@@ -81,6 +83,64 @@ function tower_gui.create(player, entity)
         name = "signal-chooser",
         style = "slot_button_in_shallow_frame",
         elem_type = "signal",
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+
+    inner_frame.add{
+        type = "line",
+        style = "inside_shallow_frame_with_padding_line",
+    }
+
+    inner_frame.add{
+        type = "checkbox",
+        name = "enable-harvest-checkbox",
+        style = "caption_checkbox",
+        caption = {"agricultural-tower-extended-controls.tower-gui-enable-harvest-checkbox-label"},
+        tooltip = {"agricultural-tower-extended-controls.tower-gui-enable-harvest-checkbox-tooltip"},
+        state = false,
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+    local enable_harvest_condition_flow = inner_frame.add{
+        type = "flow",
+        name = "enable-harvest-condition-flow",
+        style = "player_input_horizontal_flow",
+    }
+    enable_harvest_condition_flow.add{
+        type = "choose-elem-button",
+        name = "first-signal-chooser",
+        style = "slot_button_in_shallow_frame",
+        elem_type = "signal",
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+    enable_harvest_condition_flow.add{
+        type = "drop-down",
+        name = "comparator-dropdown",
+        style = "circuit_condition_comparator_dropdown",
+        items = {">", "<", "=", "≥", "≤", "≠"},
+        selected_index = 2,
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+    enable_harvest_condition_flow.add{
+        type = "choose-elem-button",
+        name = "second-signal-chooser",
+        style = "slot_button_in_shallow_frame",
+        elem_type = "signal",
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+    enable_harvest_condition_flow.add{
+        type = "textfield",
+        name = "constant-textfield",
+        style = constants.gui_style_prefix.."circuit_condition_constant_textbox",
         tags = {
             [constants.gui_changed_event_enabled] = true,
         },
