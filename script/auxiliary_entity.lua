@@ -1,8 +1,6 @@
 -- Abstract class owning an entity that exists to implement a feature of a parent entity.
 -- An instance of this class controls the lifetime of the auxiliary entity.
 
-local util = require("script.util")
-
 ---@class AuxiliaryEntity.class
 local AuxiliaryEntity = {}
 
@@ -12,15 +10,18 @@ local prototype = {}
 prototype.__index = prototype
 AuxiliaryEntity.prototype = prototype
 
+---@protected
 ---@param parent LuaEntity
 ---@return AuxiliaryEntity
 function AuxiliaryEntity:create(parent)
     local instance = setmetatable({}, self.prototype)
+    ---@diagnostic disable-next-line: invisible
     instance:create(parent)
     return instance
 end
 
 ---Create the corresponding entity, disregarding the old one if any.
+---@protected
 ---@param parent LuaEntity
 function prototype:create(parent)
     local create_entity_param = self:make_create_entity_param(parent)
@@ -32,6 +33,9 @@ function prototype:create(parent)
 
     entity.destructible = false
     entity.minable = false
+    if not settings.startup["debug"].value then
+        entity.operable = false
+    end
 
     self.entity = entity
 end
@@ -43,7 +47,9 @@ function prototype:make_create_entity_param(parent)
         name = "",
         position = parent.position,
         force = parent.force,
-    }
+        create_build_effect_smoke = false,
+        raise_built = false,
+    }--[[@as LuaSurface.create_entity_param]]
 end
 
 function prototype:destroy()
