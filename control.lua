@@ -82,7 +82,7 @@ script.on_event(
         if not player then return end
 
         if event.element.tags[constants.gui_changed_event_enabled] then
-            tower_gui.on_gui_changed(player)
+            tower_gui.on_gui_changed(player, event.element)
         end
     end
 )

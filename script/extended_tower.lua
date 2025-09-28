@@ -12,9 +12,21 @@ local ExtendedTower = {}
 ---@class (exact) ExtendedTowerControlSettings
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
+---@field enable_harvest boolean
+---@field harvest_condition_type string
+---@field harvest_condition_signal_1 SignalID?
+---@field harvest_condition_comparator_index int
+---@field harvest_condition_constant string
+---@field harvest_condition_signal_2 SignalID?
 ExtendedTower.default_control_settings = {
     read_mature_plants_enabled = false,
     read_mature_plants_signal = nil,
+    enable_harvest = false,
+    harvest_condition_type = "constant",
+    harvest_condition_signal_1 = nil,
+    harvest_condition_comparator_index = 2,
+    harvest_condition_constant = "0",  -- should I use string here?
+    harvest_condition_signal_2 = nil,
 }
 
 ---@class ExtendedTower
@@ -164,7 +176,7 @@ function ExtendedTower.on_plant_grown(plant)
     for _, id in ipairs(tower_ids) do
         local tower = ExtendedTower.get(id)
         if tower and tower:valid() and tower.control_settings.read_mature_plants_enabled then
-            -- TODO: check if plant is witin tower range
+            -- TODO: check if plant is within tower range
             tower:recount_mature_plants()
         end
     end
