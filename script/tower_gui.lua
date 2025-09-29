@@ -162,18 +162,19 @@ function tower_gui.create(player, entity)
             [constants.gui_changed_event_enabled] = true,
         },
     }
-    local harvest_condition_constant_textbox = harvest_condition_flow.add{
+    harvest_condition_flow.add{
         type = "textfield",
         name = "constant-textfield",
         style = constants.gui_style_prefix.."circuit_condition_constant_textbox",
+        text = "0",
+        numeric = true,
+        allow_decimal = false,
+        allow_negative = true,
+        lose_focus_on_confirm = true,
         tags = {
             [constants.gui_changed_event_enabled] = true,
         },
     }
-    harvest_condition_constant_textbox.numeric = true
-    harvest_condition_constant_textbox.allow_decimal = false
-    harvest_condition_constant_textbox.allow_negative = true
-    harvest_condition_constant_textbox.lose_focus_on_confirm = true
 
     tower_gui.refresh(player, entity)
     return outer_frame
@@ -220,7 +221,15 @@ function tower_gui.refresh(player, entity)
     frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].selected_index =
         util.find(circuit_condition.comparators, control_settings.enable_harvest_condition.comparator) or
         circuit_condition.default_comparator_index
-    frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text = tostring(control_settings.enable_harvest_condition.constant or "")
+
+    -- Enable harvest: set constant textbox content only when the numeric value differs,
+    -- to preserve intermeiary input like "-" and ""
+    if
+        control_settings.enable_harvest_condition.constant ~=
+        (tonumber(frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text) or 0)
+    then
+        frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text = tostring(control_settings.enable_harvest_condition.constant or 0)
+    end
 
     -- Enable harvest: second signal or constant, conditionally show controls of either
     if control_settings.enable_harvest_condition.constant then
@@ -275,9 +284,7 @@ function tower_gui.on_gui_changed(player, element)
             element == frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"] -- see which's just been clicked
         )
     then
-        local text = frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text
-        -- Allow -0 so the negative sign is preserved when typed first.
-        control_settings.enable_harvest_condition.constant = tonumber(text) or text:sub(1, 1) == "-" and -0 or 0
+        control_settings.enable_harvest_condition.constant = tonumber(frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text) or 0
     else
         control_settings.enable_harvest_condition.second_signal = frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].elem_value--[[@as SignalID?]]
     end
