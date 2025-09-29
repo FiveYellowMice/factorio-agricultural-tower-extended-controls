@@ -2,6 +2,7 @@
 
 local constants = require("constants")
 local ExtendedTower = require("script.extended_tower")
+local circuit_condition = require("script.circuit_condition")
 local util = require("script.util")
 
 local tower_gui = {}
@@ -107,12 +108,12 @@ function tower_gui.create(player, entity)
 
     local harvest_condition_type_flow = inner_frame.add{
         type = "flow",
-        name = "harvest-condition-type-flow",
+        name = "enable-harvest-condition-type-flow",
         style = "player_input_horizontal_flow",
     }
     harvest_condition_type_flow.add{
         type = "radiobutton",
-        name = "harvest-condition-constant",
+        name = "option-constant",
         caption = {"agricultural-tower-extended-controls.tower-gui-signal-condition-constant"},
         state = true,
         tags = {
@@ -121,20 +122,20 @@ function tower_gui.create(player, entity)
     }
     harvest_condition_type_flow.add{
         type = "radiobutton",
-        name = "harvest-condition-signal",
+        name = "option-signal",
         caption = {"agricultural-tower-extended-controls.tower-gui-signal-condition-signal"},
         state = false,
         tags = {
             [constants.gui_changed_event_enabled] = true,
         },
     }
-    
-    local enable_harvest_condition_flow = inner_frame.add{
+
+    local harvest_condition_flow = inner_frame.add{
         type = "flow",
         name = "enable-harvest-condition-flow",
         style = "player_input_horizontal_flow",
     }
-    enable_harvest_condition_flow.add{
+    harvest_condition_flow.add{
         type = "choose-elem-button",
         name = "first-signal-chooser",
         style = "slot_button_in_shallow_frame",
@@ -143,29 +144,16 @@ function tower_gui.create(player, entity)
             [constants.gui_changed_event_enabled] = true,
         },
     }
-    enable_harvest_condition_flow.add{
+    harvest_condition_flow.add{
         type = "drop-down",
         name = "comparator-dropdown",
         style = "circuit_condition_comparator_dropdown",
-        items = constants.comparator_names,
-        selected_index = 2,
+        items = circuit_condition.comparators,
         tags = {
             [constants.gui_changed_event_enabled] = true,
         },
     }
-    enable_harvest_condition_flow.add{
-        type = "textfield",
-        name = "constant-textfield",
-        style = constants.gui_style_prefix.."circuit_condition_constant_textbox",
-        tags = {
-            [constants.gui_changed_event_enabled] = true,
-        },
-    }
-    enable_harvest_condition_flow["constant-textfield"].numeric = true
-    enable_harvest_condition_flow["constant-textfield"].allow_decimal = false
-    enable_harvest_condition_flow["constant-textfield"].allow_negative = true
-    enable_harvest_condition_flow["constant-textfield"].lose_focus_on_confirm = true
-    enable_harvest_condition_flow.add{
+    harvest_condition_flow.add{
         type = "choose-elem-button",
         name = "second-signal-chooser",
         style = "slot_button_in_shallow_frame",
@@ -174,6 +162,18 @@ function tower_gui.create(player, entity)
             [constants.gui_changed_event_enabled] = true,
         },
     }
+    local harvest_condition_constant_textbox = harvest_condition_flow.add{
+        type = "textfield",
+        name = "constant-textfield",
+        style = constants.gui_style_prefix.."circuit_condition_constant_textbox",
+        tags = {
+            [constants.gui_changed_event_enabled] = true,
+        },
+    }
+    harvest_condition_constant_textbox.numeric = true
+    harvest_condition_constant_textbox.allow_decimal = false
+    harvest_condition_constant_textbox.allow_negative = true
+    harvest_condition_constant_textbox.lose_focus_on_confirm = true
 
     tower_gui.refresh(player, entity)
     return outer_frame
@@ -205,83 +205,88 @@ function tower_gui.refresh(player, entity)
 
     local control_settings = ExtendedTower.get_control_settings(entity) or ExtendedTower.default_control_settings
 
+    -- Read mature plants
     frame["inner-frame"]["read-mature-plants-checkbox"].state = control_settings.read_mature_plants_enabled
     frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value = control_settings.read_mature_plants_signal
 
+    -- Enable/disable controls of read mature plants
     frame["inner-frame"]["read-mature-plants-signal-table"]["label"].enabled = control_settings.read_mature_plants_enabled
     frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].enabled = control_settings.read_mature_plants_enabled
 
-    frame["inner-frame"]["enable-harvest-checkbox"].state = control_settings.enable_harvest
-    frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].elem_value = control_settings.harvest_condition_signal_1
-    frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].elem_value = control_settings.harvest_condition_signal_2
-    frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].selected_index = control_settings.harvest_condition_comparator_index
-    frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text = control_settings.harvest_condition_constant
-    if control_settings.harvest_condition_type == 'constant' then
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-constant"].state = true
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].state = false
+    -- Enable harvest
+    frame["inner-frame"]["enable-harvest-checkbox"].state = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].elem_value = control_settings.enable_harvest_condition.first_signal
+    frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].elem_value = control_settings.enable_harvest_condition.second_signal
+    frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].selected_index =
+        util.find(circuit_condition.comparators, control_settings.enable_harvest_condition.comparator) or
+        circuit_condition.default_comparator_index
+    frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text = tostring(control_settings.enable_harvest_condition.constant or "")
+
+    -- Enable harvest: second signal or constant, conditionally show controls of either
+    if control_settings.enable_harvest_condition.constant then
+        frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-constant"].state = true
+        frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"].state = false
         frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].visible = true
         frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].visible = false
     else
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-constant"].state = false
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].state = true
+        frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-constant"].state = false
+        frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"].state = true
         frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].visible = false
         frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].visible = true
     end
-    
-    frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-constant"].enabled = control_settings.enable_harvest
-    frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].enabled = control_settings.enable_harvest
-    frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].enabled = control_settings.enable_harvest
-    frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].enabled = control_settings.enable_harvest
-    frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].enabled = control_settings.enable_harvest
-    frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].enabled = control_settings.enable_harvest
+
+    -- Enable/disable controls of enable harvest
+    frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-constant"].enabled = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"].enabled = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].enabled = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].enabled = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].enabled = control_settings.enable_harvest_enabled
+    frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].enabled = control_settings.enable_harvest_enabled
 end
 
 ---Called when any relavant input element has changed.
 ---@param player LuaPlayer
----@param clicked_element LuaGuiElement
-function tower_gui.on_gui_changed(player, clicked_element)
+---@param element LuaGuiElement
+function tower_gui.on_gui_changed(player, element)
     local frame = player.gui.relative[constants.gui_name] ---@type LuaGuiElement?
     if not frame then return end
     if not player.opened or player.opened.object_name ~= "LuaEntity" then return end
     local entity = player.opened--[[@as LuaEntity]]
     if not ExtendedTower.is_agricultural_tower(entity) and not ExtendedTower.is_ghost_agricultural_tower(entity) then return end
-    
-    -- Update radio button state
-    if clicked_element.name == "harvest-condition-constant" then
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-constant"].state = true
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].state = false
-    elseif clicked_element.name == "harvest-condition-signal" then
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-constant"].state = false
-        frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].state = true
-    end
-    
-    local harvest_condition_type = "constant"
-    if frame["inner-frame"]["harvest-condition-type-flow"]["harvest-condition-signal"].state then
-        harvest_condition_type = "signal"
-    end
 
-    -- Read control settings from GUI input
+    -- Read most control settings from GUI input
     ---@type ExtendedTowerControlSettings
     local control_settings = {
         read_mature_plants_enabled = frame["inner-frame"]["read-mature-plants-checkbox"].state,
-        read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID]],
-        enable_harvest = frame["inner-frame"]["enable-harvest-checkbox"].state,
-        harvest_condition_type = harvest_condition_type,
-        harvest_condition_signal_1 = frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].elem_value--[[@as SignalID]],
-        harvest_condition_comparator_index = frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].selected_index,
-        harvest_condition_constant = frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text,
-        harvest_condition_signal_2 = frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].elem_value--[[@as SignalID]],
+        read_mature_plants_signal = frame["inner-frame"]["read-mature-plants-signal-table"]["signal-chooser"].elem_value--[[@as SignalID?]],
+        enable_harvest_enabled = frame["inner-frame"]["enable-harvest-checkbox"].state,
+        enable_harvest_condition = {
+            comparator = circuit_condition.comparators[frame["inner-frame"]["enable-harvest-condition-flow"]["comparator-dropdown"].selected_index] or circuit_condition.default_comparator,
+            first_signal = frame["inner-frame"]["enable-harvest-condition-flow"]["first-signal-chooser"].elem_value--[[@as SignalID?]],
+        },
     }
 
-    -- Reject meta signals
-    local meta_signals_names = util.list_to_map{"signal-everything", "signal-anything", "signal-each"}
+    -- Read enable harvest condition depending on type
+    -- Type is selected by radio buttons
     if
-        control_settings.read_mature_plants_signal and
-        control_settings.read_mature_plants_signal.type == "virtual" and
-        meta_signals_names[control_settings.read_mature_plants_signal.name]
+        frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-constant"].state and
+        not (
+            frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"].state and -- if both are true
+            element == frame["inner-frame"]["enable-harvest-condition-type-flow"]["option-signal"] -- see which's just been clicked
+        )
     then
+        local text = frame["inner-frame"]["enable-harvest-condition-flow"]["constant-textfield"].text
+        -- Allow -0 so the negative sign is preserved when typed first.
+        control_settings.enable_harvest_condition.constant = tonumber(text) or text:sub(1, 1) == "-" and -0 or 0
+    else
+        control_settings.enable_harvest_condition.second_signal = frame["inner-frame"]["enable-harvest-condition-flow"]["second-signal-chooser"].elem_value--[[@as SignalID?]]
+    end
+
+    -- Reject meta signals
+    if control_settings.read_mature_plants_signal and util.is_meta_signal(control_settings.read_mature_plants_signal) then
         control_settings.read_mature_plants_signal = nil
     end
+    circuit_condition.reject_meta_signals(control_settings.enable_harvest_condition)
 
     -- Save to entity
     ExtendedTower.set_control_settings(entity, control_settings)

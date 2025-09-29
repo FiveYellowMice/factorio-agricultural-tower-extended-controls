@@ -88,11 +88,12 @@ gui_style[constants.gui_style_prefix.."circuit_condition_constant_textbox"] = {
     vertical_align = "center",
     font = "default-game",
     font_color = {1, 1, 1},
+    disabled_font_color = {1, 1, 1},
 
     -- Make it look like a slot button when not edited
     default_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].default_graphical_set),
     game_controller_hovered_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].hovered_graphical_set),
-    disabled_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].disabled_badge_graphical_set),
+    disabled_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].disabled_graphical_set),
 }
 
 

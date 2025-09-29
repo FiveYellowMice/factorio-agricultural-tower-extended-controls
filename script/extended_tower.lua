@@ -4,6 +4,7 @@
 local constants = require("constants")
 local util = require("script.util")
 local tower_index = require("script.tower_index")
+local circuit_condition = require("script.circuit_condition")
 local OutputCombinator = require("script.output_combinator")
 
 local ExtendedTower = {}
@@ -12,21 +13,16 @@ local ExtendedTower = {}
 ---@class (exact) ExtendedTowerControlSettings
 ---@field read_mature_plants_enabled boolean
 ---@field read_mature_plants_signal SignalID?
----@field enable_harvest boolean
----@field harvest_condition_type string
----@field harvest_condition_signal_1 SignalID?
----@field harvest_condition_comparator_index int
----@field harvest_condition_constant string
----@field harvest_condition_signal_2 SignalID?
+---@field enable_harvest_enabled boolean
+---@field enable_harvest_condition ModCircuitCondition
 ExtendedTower.default_control_settings = {
     read_mature_plants_enabled = false,
     read_mature_plants_signal = nil,
-    enable_harvest = false,
-    harvest_condition_type = "constant",
-    harvest_condition_signal_1 = nil,
-    harvest_condition_comparator_index = 2,
-    harvest_condition_constant = "0",  -- should I use string here?
-    harvest_condition_signal_2 = nil,
+    enable_harvest_enabled = false,
+    enable_harvest_condition = {
+        comparator = "<",
+        constant = 0,
+    },
 }
 
 ---@class ExtendedTower

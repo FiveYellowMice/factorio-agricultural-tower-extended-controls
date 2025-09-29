@@ -79,6 +79,8 @@ script.on_event(
     ---@param event
     ---| EventData.on_gui_checked_state_changed
     ---| EventData.on_gui_elem_changed
+    ---| EventData.on_gui_text_changed
+    ---| EventData.on_gui_selection_state_changed
     function(event)
         local player = game.get_player(event.player_index)
         if not player then return end

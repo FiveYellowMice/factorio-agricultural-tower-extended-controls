@@ -44,5 +44,27 @@ function util.array_concat(arrays)
     return result
 end
 
+---Find the index of a value in a table.
+---@generic K, V
+---@param table table<K, V>
+---@param value V
+---@return K?
+function util.find(table, value)
+    if value == nil then return end
+    for k, v in pairs(table) do
+        if v == value then
+            return k
+        end
+    end
+end
+
+local meta_signals_names = util.list_to_map{"signal-everything", "signal-anything", "signal-each"}
+
+---@param signal SignalID
+---@return boolean
+function util.is_meta_signal(signal)
+    return signal.type == "virtual" and meta_signals_names[signal.name]
+end
+
 
 return util
