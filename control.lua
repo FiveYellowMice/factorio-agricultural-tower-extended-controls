@@ -73,6 +73,8 @@ script.on_event(
     {
         defines.events.on_gui_checked_state_changed,
         defines.events.on_gui_elem_changed,
+        defines.events.on_gui_text_changed,
+        defines.events.on_gui_selection_state_changed,
     },
     ---@param event
     ---| EventData.on_gui_checked_state_changed

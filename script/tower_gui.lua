@@ -161,6 +161,10 @@ function tower_gui.create(player, entity)
             [constants.gui_changed_event_enabled] = true,
         },
     }
+    enable_harvest_condition_flow["constant-textfield"].numeric = true
+    enable_harvest_condition_flow["constant-textfield"].allow_decimal = false
+    enable_harvest_condition_flow["constant-textfield"].allow_negative = true
+    enable_harvest_condition_flow["constant-textfield"].lose_focus_on_confirm = true
     enable_harvest_condition_flow.add{
         type = "choose-elem-button",
         name = "second-signal-chooser",

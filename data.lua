@@ -78,7 +78,6 @@ gui_style[constants.gui_style_prefix.."circuit_condition_constant_textbox"] = {
     type = "textbox_style",
     width = 40,
     height = 40,
-    left_margin = -4,
 
     -- Format text inside
     top_padding = 7,
