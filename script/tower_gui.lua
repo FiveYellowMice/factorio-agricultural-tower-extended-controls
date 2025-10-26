@@ -64,7 +64,7 @@ function tower_gui.create(player, entity)
         tooltip = {"agricultural-tower-extended-controls.tower-gui-read-mature-plants-checkbox-tooltip"},
         state = false,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
     local mature_signal_table = inner_frame.add{
@@ -85,7 +85,7 @@ function tower_gui.create(player, entity)
         style = "slot_button_in_shallow_frame",
         elem_type = "signal",
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
 
@@ -102,7 +102,7 @@ function tower_gui.create(player, entity)
         tooltip = {"agricultural-tower-extended-controls.tower-gui-enable-harvest-checkbox-tooltip"},
         state = false,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
 
@@ -117,7 +117,7 @@ function tower_gui.create(player, entity)
         caption = {"agricultural-tower-extended-controls.tower-gui-signal-condition-constant"},
         state = true,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
     harvest_condition_type_flow.add{
@@ -126,7 +126,7 @@ function tower_gui.create(player, entity)
         caption = {"agricultural-tower-extended-controls.tower-gui-signal-condition-signal"},
         state = false,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
 
@@ -141,7 +141,7 @@ function tower_gui.create(player, entity)
         style = "slot_button_in_shallow_frame",
         elem_type = "signal",
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
     harvest_condition_flow.add{
@@ -150,7 +150,7 @@ function tower_gui.create(player, entity)
         style = "circuit_condition_comparator_dropdown",
         items = circuit_condition.comparators,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
     harvest_condition_flow.add{
@@ -159,7 +159,7 @@ function tower_gui.create(player, entity)
         style = "slot_button_in_shallow_frame",
         elem_type = "signal",
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
     harvest_condition_flow.add{
@@ -172,9 +172,57 @@ function tower_gui.create(player, entity)
         allow_negative = true,
         lose_focus_on_confirm = true,
         tags = {
-            [constants.gui_changed_event_enabled] = true,
+            [constants.gui_tag_changed_event_enabled] = true,
         },
     }
+
+    if settings.startup[constants.setting_debug].value then
+        inner_frame.add{
+            type = "line",
+            style = "inside_shallow_frame_with_padding_line",
+        }
+        local aux_entities_flow = inner_frame.add{
+            type = "flow",
+            name = "debug-aux-entities-flow",
+        }
+        aux_entities_flow.add{
+            type = "sprite-button",
+            sprite = "item/constant-combinator",
+            tags = {
+                [constants.gui_tag_debug_aux_entity] = "output_combinator",
+            }
+        }
+        aux_entities_flow.add{
+            type = "sprite-button",
+            sprite = "item/inserter",
+            number = 1,
+            tags = {
+                [constants.gui_tag_debug_aux_entity] = "harvest_disable_inserter_1",
+            }
+        }
+        aux_entities_flow.add{
+            type = "sprite-button",
+            sprite = "item/inserter",
+            number = 2,
+            tags = {
+                [constants.gui_tag_debug_aux_entity] = "harvest_disable_inserter_2",
+            }
+        }
+        aux_entities_flow.add{
+            type = "sprite-button",
+            sprite = "item/infinity-chest",
+            tags = {
+                [constants.gui_tag_debug_aux_entity] = "harvest_disable_infinity_container",
+            }
+        }
+        aux_entities_flow.add{
+            type = "sprite-button",
+            sprite = "item/proxy-container",
+            tags = {
+                [constants.gui_tag_debug_aux_entity] = "harvest_disable_proxy_container",
+            }
+        }
+    end
 
     tower_gui.refresh(player, entity)
     return outer_frame

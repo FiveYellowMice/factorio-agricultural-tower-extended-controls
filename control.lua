@@ -85,8 +85,26 @@ script.on_event(
         local player = game.get_player(event.player_index)
         if not player then return end
 
-        if event.element.tags[constants.gui_changed_event_enabled] then
+        if event.element.tags[constants.gui_tag_changed_event_enabled] then
             tower_gui.on_gui_changed(player, event.element)
+        end
+    end
+)
+
+
+script.on_event(defines.events.on_gui_click,
+    function(event)
+        local player = game.get_player(event.player_index)
+        if not player then return end
+
+        if settings.startup[constants.setting_debug].value and event.element.tags[constants.gui_tag_debug_aux_entity] then
+            -- Debug: open GUI for an auxiliary entity
+            if not player.opened or player.opened.object_name ~= "LuaEntity" then return end
+            local tower = ExtendedTower.get(player.opened--[[@as LuaEntity]])
+            if not tower then return end
+            local aux = tower[event.element.tags[constants.gui_tag_debug_aux_entity]]
+            if not aux or not aux.debug_open then return end
+            aux--[[@as AuxiliaryEntity]]:debug_open(player)
         end
     end
 )

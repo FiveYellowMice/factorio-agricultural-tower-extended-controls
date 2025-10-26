@@ -1,8 +1,6 @@
 -- Abstract class owning an entity that exists to implement a feature of a parent entity.
 -- An instance of this class controls the lifetime of the auxiliary entity.
 
-local constants = require("constants")
-
 ---@class AuxiliaryEntity.class
 local AuxiliaryEntity = {}
 
@@ -35,9 +33,7 @@ function prototype:create(parent)
 
     entity.destructible = false
     entity.minable = false
-    if not settings.startup[constants.setting_debug].value then
-        entity.operable = false
-    end
+    entity.operable = false
 
     self.entity = entity
 end
@@ -69,6 +65,14 @@ function prototype:ensure_valid(parent)
     if not self:valid() then
         self:create(parent)
     end
+end
+
+---Open entity GUI for debugging.
+---@param player LuaPlayer
+function prototype:debug_open(player)
+    self.entity.operable = true
+    player.opened = self.entity
+    self.entity.operable = false
 end
 
 return AuxiliaryEntity
