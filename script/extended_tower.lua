@@ -98,6 +98,18 @@ function ExtendedTower.remove(unit_number)
     if tower.output_combinator then
         tower.output_combinator:destroy()
     end
+    if tower.harvest_disable_inserter_1 then
+        tower.harvest_disable_inserter_1:destroy()
+    end
+    if tower.harvest_disable_inserter_2 then
+        tower.harvest_disable_inserter_2:destroy()
+    end
+    if tower.harvest_disable_infinity_container then
+        tower.harvest_disable_infinity_container:destroy()
+    end
+    if tower.harvest_disable_proxy_container then
+        tower.harvest_disable_proxy_container:destroy()
+    end
 
     storage.towers[unit_number] = nil
 end
