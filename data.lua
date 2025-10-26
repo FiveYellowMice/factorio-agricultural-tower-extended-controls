@@ -97,7 +97,7 @@ gui_style[constants.gui_style_prefix.."circuit_condition_constant_textbox"] = {
 }
 
 
-if settings.startup['debug'].value then
+if settings.startup[constants.setting_debug].value then
     -- Make Gleba plants grow in 5 seconds
     data.raw["plant"]["yumako-tree"].growth_ticks = 5 * 60
     data.raw["plant"]["jellystem"].growth_ticks = 5 * 60

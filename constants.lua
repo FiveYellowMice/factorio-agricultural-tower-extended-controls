@@ -2,6 +2,8 @@ local constants = {}
 
 constants.name_prefix = "agricultural_tower_extended_controls-"
 
+constants.setting_debug = constants.name_prefix.."debug"
+
 constants.entity_output_combinator = constants.name_prefix.."output-combinator"
 constants.entity_harvest_disable_inserter = constants.name_prefix.."harvest-disable-inserter"
 constants.entity_harvest_disable_infinity_container = constants.name_prefix.."harvest-disable-infinity-container"
