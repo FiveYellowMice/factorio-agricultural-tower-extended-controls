@@ -1,8 +1,14 @@
 {
     "name": "agricultural-tower-extended-controls",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "title": "Agricultural Tower Extended Controls",
     "author": "nbcss, FiveYellowMice",
+    "homepage": "https://github.com/FiveYellowMice/factorio-agricultural-tower-extended-controls",
     "factorio_version": "2.0",
-    "dependencies": ["base >= 2.0.62", "space-age"]
+    "dependencies": ["base >= 2.0.62", "space-age"],
+    "package": {
+        "ignore": [
+            "README.md"
+        ]
+    }
 }
