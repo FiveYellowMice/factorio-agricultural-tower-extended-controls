@@ -8,6 +8,7 @@ constants.entity_output_combinator = constants.name_prefix.."output-combinator"
 constants.entity_harvest_disable_inserter = constants.name_prefix.."harvest-disable-inserter"
 constants.entity_harvest_disable_infinity_container = constants.name_prefix.."harvest-disable-infinity-container"
 constants.entity_harvest_disable_proxy_container = constants.name_prefix.."harvest-disable-proxy-container"
+constants.item_blocked_slot = constants.name_prefix.."blocked-slot"
 
 constants.entity_tag_control_settings = constants.name_prefix.."control_settings"
 constants.gui_name = constants.name_prefix.."tower-gui"

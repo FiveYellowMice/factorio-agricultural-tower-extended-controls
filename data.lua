@@ -11,7 +11,6 @@ local hidden_entity_base = {
         "not-deconstructable",
         "not-blueprintable",
         "hide-alt-info",
-        "not-flammable",
         "not-upgradable",
     },
     selectable_in_game = false,
@@ -48,6 +47,7 @@ data:extend{
         uses_inserter_stack_size_bonus = false,
         draw_held_item = false,
         draw_inserter_arrow = false,
+        circuit_wire_max_distance = settings.startup[constants.setting_debug].value and 1 or nil,
     }--[[@as data.InserterPrototype]]},
 
     util.merge{hidden_entity_base, {
@@ -64,6 +64,24 @@ data:extend{
         type = "proxy-container",
         name = constants.entity_harvest_disable_proxy_container,
     }--[[@as data.ProxyContainerPrototype]]},
+
+    {
+        type = "item",
+        name = constants.item_blocked_slot,
+        hidden = true,
+        flags = {
+            "not-stackable",
+            "only-in-cursor",
+        },
+        stack_size = 1,
+        icons = {
+            {
+                icon = "__core__/graphics/set-bar-slot.png",
+                icon_size = 64,
+                draw_background = false,
+            }
+        },
+    }
 }
 
 

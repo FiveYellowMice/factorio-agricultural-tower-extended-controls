@@ -6,6 +6,7 @@ local util = require("script.util")
 local tower_index = require("script.tower_index")
 local circuit_condition = require("script.circuit_condition")
 local OutputCombinator = require("script.output_combinator")
+local harvest_disable_entities = require("script.harvest_disable_entities")
 
 local ExtendedTower = {}
 
@@ -29,6 +30,10 @@ ExtendedTower.default_control_settings = {
 ---@field entity LuaEntity
 ---@field control_settings ExtendedTowerControlSettings
 ---@field output_combinator OutputCombinator?
+---@field harvest_disable_inserter_1 HarvestDisableInserter?
+---@field harvest_disable_inserter_2 HarvestDisableInserter?
+---@field harvest_disable_infinity_container HarvestDisableInfinityContainer?
+---@field harvest_disable_proxy_container HarvestDisableProxyContainer?
 ---@field mature_plant_count uint Valid only when read_mature_plants_enabled is true.
 local prototype = {}
 prototype.__index = prototype
@@ -222,6 +227,44 @@ function prototype:on_control_settings_updated()
         if self.output_combinator then
             self.output_combinator:destroy()
             self.output_combinator = nil
+        end
+    end
+
+    -- Create and configure or destroy the entities for harvest disabling
+    if self.control_settings.enable_harvest_enabled then
+        if not self.harvest_disable_inserter_1 then
+            self.harvest_disable_inserter_1 = harvest_disable_entities.HarvestDisableInserter:create(self.entity)
+        end
+        if not self.harvest_disable_inserter_2 then
+            self.harvest_disable_inserter_2 = harvest_disable_entities.HarvestDisableInserter:create(self.entity)
+        end
+        if not self.harvest_disable_infinity_container then
+            self.harvest_disable_infinity_container = harvest_disable_entities.HarvestDisableInfinityContainer:create(self.entity)
+        end
+        if not self.harvest_disable_proxy_container then
+            self.harvest_disable_proxy_container = harvest_disable_entities.HarvestDisableProxyContainer:create(self.entity)
+        end
+        self.harvest_disable_inserter_1:connect(self.harvest_disable_infinity_container.entity, self.harvest_disable_proxy_container.entity)
+        self.harvest_disable_inserter_2:connect(self.harvest_disable_proxy_container.entity, self.harvest_disable_infinity_container.entity)
+
+        self.harvest_disable_inserter_1:set_condition(circuit_condition.export(self.control_settings.enable_harvest_condition, true)--[[@as CircuitConditionDefinition]])
+        self.harvest_disable_inserter_2:set_condition(circuit_condition.export(self.control_settings.enable_harvest_condition, false)--[[@as CircuitConditionDefinition]])
+    else
+        if self.harvest_disable_inserter_1 then
+            self.harvest_disable_inserter_1:destroy()
+            self.harvest_disable_inserter_1 = nil
+        end
+        if self.harvest_disable_inserter_2 then
+            self.harvest_disable_inserter_2:destroy()
+            self.harvest_disable_inserter_2 = nil
+        end
+        if self.harvest_disable_infinity_container then
+            self.harvest_disable_infinity_container:destroy()
+            self.harvest_disable_infinity_container = nil
+        end
+        if self.harvest_disable_proxy_container then
+            self.harvest_disable_proxy_container:destroy()
+            self.harvest_disable_proxy_container = nil
         end
     end
 end
