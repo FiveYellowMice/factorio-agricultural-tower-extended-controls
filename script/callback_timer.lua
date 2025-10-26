@@ -62,8 +62,6 @@ function callback_timer.add(at_tick, callback)
         storage.callback_timers[at_tick] = callbacks
     end
     table.insert(callbacks, callback)
-
-    game.print("Callback timer added: "..at_tick.." "..serpent.line(callback))
 end
 
 return callback_timer
