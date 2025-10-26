@@ -1,5 +1,7 @@
 # Agricultural Tower Extended Controls
 
+[Mod Portal](https://mods.factorio.com/mod/agricultural-tower-extended-controls) | [GitHub](https://github.com/FiveYellowMice/factorio-agricultural-tower-extended-controls)
+
 This Factorio mod adds more circuit controls for agricultural towers, namely:
 
 * Reads the number of fully-grown plants within the range of this agricultural tower.
