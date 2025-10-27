@@ -1,0 +1,11 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+Date: 2025-10-28
+  Compatibility:
+    - Remove mandatory dependency on Space Age mod, require space travel feature flag instead.
+  Changes:
+    - Ensure blocked slot items are cleared when a player or robot deconstructs it.
+  Bugfixes:
+    - Register missing metatables.
+    - Fix auxiliary entities leaking when they are cloned with the agricultural tower by other mods.
+    - Handle when plants and agricultural towers are teleported.
