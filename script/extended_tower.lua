@@ -206,7 +206,7 @@ function ExtendedTower.on_plant_grown(plant)
     end
 end
 
----@param plant LuaEntity
+---@param plant LuaEntity | {surface_index: uint8, position: MapPosition}
 function ExtendedTower.on_plant_mined(plant)
     local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
     for _, id in ipairs(tower_ids) do
@@ -217,7 +217,7 @@ function ExtendedTower.on_plant_mined(plant)
             -- This function gets called from events fired before the entity is actually destroyed
             -- (else we wouldn't get a valid LuaEntity object), so recounting needs to exclude the
             -- entity pending destruction from being counted.
-            tower:recount_mature_plants(plant)
+            tower:recount_mature_plants(plant.object_name == "LuaEntity" and plant or nil)
         end
     end
 end

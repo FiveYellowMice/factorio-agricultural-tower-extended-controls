@@ -259,6 +259,45 @@ script.on_event(defines.events.on_pre_player_mined_item,
 )
 
 
+-- Entity teleport
+
+script.on_event(defines.events.script_raised_teleported,
+    function(event)
+        if event.entity.type == "plant" then
+            -- Plant is teleported, remove its count from old location.
+            ExtendedTower.on_plant_mined{
+                surface_index = event.old_surface_index,
+                position = event.old_position,
+            }
+            -- Adding count to new location when it is already grown,
+            -- immature plant will presumably already have a callback timer which will trigger at the new loacation.
+            if event.entity.tick_grown <= game.tick then
+                ExtendedTower.on_plant_grown(event.entity)
+            end
+
+        elseif ExtendedTower.is_agricultural_tower(event.entity) then
+            -- Tower is teleported, recreate its associated ExtendedTower object
+            local tower = ExtendedTower.get(event.entity)
+            if tower then
+                local control_settings = tower:get_control_settings()
+                ExtendedTower.remove(event.entity.unit_number)
+                tower = ExtendedTower.get_or_create(event.entity)
+                tower:set_control_settings(control_settings)
+            end
+        end
+    end,
+    util.array_concat{
+        {
+            {
+                filter = "type",
+                type = "plant",
+            },
+        },
+        ExtendedTower.agricultural_tower_event_filter,
+    }
+)
+
+
 -- Tower settings transfer
 
 script.on_event(defines.events.on_entity_settings_pasted,
