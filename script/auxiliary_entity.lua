@@ -1,6 +1,9 @@
 -- Abstract class owning an entity that exists to implement a feature of a parent entity.
 -- An instance of this class controls the lifetime of the auxiliary entity.
 
+local util = require("util")
+local constants = require("constants")
+
 ---@class AuxiliaryEntity.class
 local AuxiliaryEntity = {}
 
@@ -18,6 +21,23 @@ function AuxiliaryEntity:create(parent)
     ---@diagnostic disable-next-line: invisible
     instance:create(parent)
     return instance
+end
+
+AuxiliaryEntity.auxiliary_entity_event_filter = {}
+for _, name in ipairs(constants.auxiliary_entity_names) do
+    table.insert(AuxiliaryEntity.auxiliary_entity_event_filter, {
+        filter = "name",
+        name = name,
+    })
+end
+
+---@param entity LuaEntity
+---@return boolean
+function AuxiliaryEntity.is_auxiliary_entity(entity)
+    for _, name in ipairs(constants.auxiliary_entity_names) do
+        if entity.name == name then return true end
+    end
+    return false
 end
 
 ---Create the corresponding entity, disregarding the old one if any.

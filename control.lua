@@ -2,6 +2,7 @@ local constants = require("constants")
 local util = require("script.util")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
+local AuxiliaryEntity = require("script.auxiliary_entity")
 local OutputCombinator = require("script.output_combinator")
 local harvest_disable_entities = require("script.harvest_disable_entities")
 local tower_gui = require("script.tower_gui")
@@ -166,6 +167,13 @@ local function built_entity_handler(event)
                 }--[[@as TowerSetingsTransferToUndoActionData]]})
             end
         end
+
+    elseif AuxiliaryEntity.is_auxiliary_entity(entity) then
+        if event.name == defines.events.on_entity_cloned and event.source then
+            -- Auxiliary entities should not be cloned, it must be created and managed by an ExtendedTower to work.
+            -- So when they are cloned by other mods (e.g. with area clone), destroy them.
+            entity.destroy()
+        end
     end
 end
 local built_entity_filter = util.array_concat{
@@ -176,6 +184,7 @@ local built_entity_filter = util.array_concat{
         },
     },
     ExtendedTower.agricultural_tower_event_filter,
+    AuxiliaryEntity.auxiliary_entity_event_filter,
 }
 script.on_event(defines.events.on_tower_planted_seed, built_entity_handler)
 script.on_event(defines.events.on_built_entity, built_entity_handler, built_entity_filter)

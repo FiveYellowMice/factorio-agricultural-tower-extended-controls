@@ -10,6 +10,13 @@ constants.entity_harvest_disable_infinity_container = constants.name_prefix.."ha
 constants.entity_harvest_disable_proxy_container = constants.name_prefix.."harvest-disable-proxy-container"
 constants.item_blocked_slot = constants.name_prefix.."blocked-slot"
 
+constants.auxiliary_entity_names = {
+    constants.entity_output_combinator,
+    constants.entity_harvest_disable_inserter,
+    constants.entity_harvest_disable_infinity_container,
+    constants.entity_harvest_disable_proxy_container,
+}
+
 constants.entity_tag_control_settings = constants.name_prefix.."control_settings"
 constants.gui_name = constants.name_prefix.."tower-gui"
 constants.gui_tag_changed_event_enabled = constants.name_prefix.."changed-event-enabled"
