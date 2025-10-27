@@ -3,6 +3,7 @@ local util = require("script.util")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
 local OutputCombinator = require("script.output_combinator")
+local harvest_disable_entities = require("script.harvest_disable_entities")
 local tower_gui = require("script.tower_gui")
 local tower_index = require('script.tower_index')
 
@@ -10,6 +11,12 @@ local ExtendedTower_prototype = ExtendedTower.prototype
 script.register_metatable("ExtendedTower_prototype", ExtendedTower_prototype)
 local OutputCombinator_prototype = OutputCombinator.prototype
 script.register_metatable("OutputCombinator_prototype", OutputCombinator_prototype)
+local HarvestDisableInserter_prototype = harvest_disable_entities.HarvestDisableInserter.prototype
+script.register_metatable("HarvestDisableInserter_prototype", HarvestDisableInserter_prototype)
+local HarvestDisableInfinityContainer_prototype = harvest_disable_entities.HarvestDisableInfinityContainer.prototype
+script.register_metatable("HarvestDisableInfinityContainer_prototype", HarvestDisableInfinityContainer_prototype)
+local HarvestDisableProxyContainer_prototype = harvest_disable_entities.HarvestDisableProxyContainer.prototype
+script.register_metatable("HarvestDisableProxyContainer_prototype", HarvestDisableProxyContainer_prototype)
 
 script.on_init(
     function()
