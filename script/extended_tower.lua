@@ -68,7 +68,7 @@ function ExtendedTower.create(entity)
 
     tower_index.add_tower(entity)
 
-    instance:on_control_settings_updated()
+    instance:on_control_settings_or_status_updated()
 
     return instance
 end
@@ -110,6 +110,7 @@ function ExtendedTower.remove(unit_number)
     if tower.harvest_disable_proxy_container then
         tower.harvest_disable_proxy_container:destroy()
     end
+    tower:clear_blocked_slots()
 
     storage.towers[unit_number] = nil
 end
@@ -183,6 +184,16 @@ function ExtendedTower.set_control_settings(entity, control_settings)
     end
 end
 
+---Called when an agricultural tower is marked or cancelled for deconstruction.
+---@param entity LuaEntity An agricultural tower.
+---@param deconstruct boolean Whether it is marked or cancelled for deconstruction.
+function ExtendedTower.on_marked_for_deconstruction(entity, deconstruct)
+    local tower = ExtendedTower.get(entity)
+    if tower then
+        tower:on_control_settings_or_status_updated()
+    end
+end
+
 ---@param plant LuaEntity
 function ExtendedTower.on_plant_grown(plant)
     local tower_ids = tower_index.get_towers_ids(plant.surface_index, plant.position)
@@ -224,11 +235,12 @@ end
 ---@param control_settings ExtendedTowerControlSettings
 function prototype:set_control_settings(control_settings)
     self.control_settings = util.table.deepcopy(control_settings)
-    self:on_control_settings_updated()
+    self:on_control_settings_or_status_updated()
 end
 
----Called when the extended control settings have changed. Update the behaviour and perform necessary changes.
-function prototype:on_control_settings_updated()
+---Called when the extended control settings or status have changed. Update the behaviour and perform necessary changes.
+---Status include whether tower entity is marked for deconstruction.
+function prototype:on_control_settings_or_status_updated()
     -- Create or destroy the output combinator
     if self.control_settings.read_mature_plants_enabled then
         if not self.output_combinator then
@@ -243,7 +255,11 @@ function prototype:on_control_settings_updated()
     end
 
     -- Create and configure or destroy the entities for harvest disabling
-    if self.control_settings.enable_harvest_enabled then
+    if
+        self.control_settings.enable_harvest_enabled and
+        -- Check the following as well, to ensure blocked slot items don't appear when a robot comes to deconstruct
+        not self.entity.to_be_deconstructed()
+    then
         if not self.harvest_disable_inserter_1 then
             self.harvest_disable_inserter_1 = harvest_disable_entities.HarvestDisableInserter:create(self.entity)
         end
@@ -278,6 +294,7 @@ function prototype:on_control_settings_updated()
             self.harvest_disable_proxy_container:destroy()
             self.harvest_disable_proxy_container = nil
         end
+        self:clear_blocked_slots()
     end
 end
 
@@ -308,6 +325,17 @@ function prototype:recount_mature_plants(exclude)
             }
         })
     end
+end
+
+---Remove blocked slot items from the output inventory.
+function prototype:clear_blocked_slots()
+    if not self:valid() then return end
+    local inventory = self.entity.get_inventory(defines.inventory.agricultural_tower_output)
+    if not inventory or #inventory <= 0 then return end
+    inventory.remove{
+        name = constants.item_blocked_slot,
+        count = #inventory, -- blocked slots have stack size of 1, so inventory size must >= their count
+    }
 end
 
 

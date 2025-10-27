@@ -229,6 +229,20 @@ script.on_event(defines.events.on_entity_died, mined_entity_handler, mined_entit
 script.on_event(defines.events.script_raised_destroy, mined_entity_handler, mined_entity_filter)
 
 
+-- Pre-entity destruction
+
+script.on_event(defines.events.on_pre_player_mined_item,
+    function(event)
+        local tower = ExtendedTower.get(event.entity)
+        if tower then
+            -- Prevent blocked slot items from getting into player's hands
+            tower:clear_blocked_slots()
+        end
+    end,
+    ExtendedTower.agricultural_tower_event_filter
+)
+
+
 -- Tower settings transfer
 
 script.on_event(defines.events.on_entity_settings_pasted,
@@ -291,6 +305,9 @@ script.on_event(defines.events.on_post_entity_died,
 
 script.on_event(defines.events.on_marked_for_deconstruction,
     function(event)
+        if ExtendedTower.is_agricultural_tower(event.entity) then
+            ExtendedTower.on_marked_for_deconstruction(event.entity, true)
+        end
         if event.player_index then
             -- Inherit control settings onto the undo action
             local control_settings = ExtendedTower.get_control_settings(event.entity)
@@ -307,6 +324,14 @@ script.on_event(defines.events.on_marked_for_deconstruction,
         end
     end,
     ExtendedTower.agricultural_tower_event_filter
+)
+
+script.on_event(defines.events.on_cancelled_deconstruction,
+    function(event)
+        if ExtendedTower.is_agricultural_tower(event.entity) then
+            ExtendedTower.on_marked_for_deconstruction(event.entity, false)
+        end
+    end
 )
 
 ---@class TowerSetingsTransferToUndoActionData

@@ -101,22 +101,6 @@ function HarvestDisableProxyContainer.prototype:make_create_entity_param(parent)
     return param
 end
 
-function HarvestDisableProxyContainer.prototype:destroy()
-    -- Remove block slot items from agricultural tower
-    local proxy_target = self.entity.proxy_target_entity
-    if proxy_target and proxy_target.valid then
-        local inventory = proxy_target.get_inventory(defines.inventory.agricultural_tower_output)
-        if inventory then
-            inventory.remove{
-                name = constants.item_blocked_slot,
-                count = #inventory,
-            }
-        end
-    end
-
-    AuxiliaryEntity.prototype.destroy(self)
-end
-
 
 return {
     HarvestDisableInserter = HarvestDisableInserter,
