@@ -14,3 +14,13 @@ The control settings of an angricultural tower provided by this mod are preserve
 ## Usage
 
 Connect a circuit wire to an agricultural tower, and open its GUI.
+
+# TODO
+
+* Do not require space-age mod
+* Remove blocked slot item when tower is destroyed
+* Ensure aux entities don't leak when area cloned
+* Sweep aux entities, rebuild index on configuration changed
+* Handle teleport
+* Fix control settings not saved in redo on entity marked for desconstruction
+* Remote interface: get/set control settings
