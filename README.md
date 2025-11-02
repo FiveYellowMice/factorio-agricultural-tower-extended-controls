@@ -7,16 +7,22 @@ This Factorio mod adds more circuit controls for agricultural towers, namely:
 * Reads the number of fully-grown plants within the range of this agricultural tower.
 * Use a circuit condition to enable/disable harvesting of plants while still allowing planting.
 
-Both functionalities are fairly optimized, performance impact should be minimal.
-
-The control settings of an angricultural tower provided by this mod are preserved accross copy-pasting, and in blueprints.
-
 ## Usage
 
 Connect a circuit wire to an agricultural tower, and open its GUI.
 
-# TODO
+## Technical Characteristics
 
+* Computations for both features are run only when necessary. Minimal per-tick logic.
+* Does not scan the world for every agricultural tower, so building more agricultural towers does not make it slower.
+* Circuit control settings can be configured for entity ghosts before they are built.
+* Supports copy-pasting, blueprints, undoing.
+* Handles other mods teleporting/cloning the agricultural tower.
+* Handles when multiple players are configuring the same agricultural tower.
+
+# Todo
+
+* Preserve settings for quick-replacements to modded towers.
 * Sweep aux entities, rebuild index on configuration changed
 * Fix control settings not saved in redo on entity marked for desconstruction
-* Remote interface: get/set control settings
+* Add remote interface: get/set control settings
