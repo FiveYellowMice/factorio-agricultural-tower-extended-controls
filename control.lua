@@ -1,5 +1,6 @@
 local constants = require("constants")
 local util = require("script.util")
+local migrations = require("script.migrations")
 local callback_timer = require("script.callback_timer")
 local ExtendedTower = require("script.extended_tower")
 local AuxiliaryEntity = require("script.auxiliary_entity")
@@ -30,6 +31,7 @@ script.on_init(
 script.on_configuration_changed(
     function(config_change)
         tower_gui.on_configuration_changed(config_change)
+        migrations.on_configuration_changed(config_change)
     end
 )
 
