@@ -95,21 +95,11 @@ function ExtendedTower.remove(unit_number)
     if not tower then return end
 
     tower_index.remove_tower(unit_number)
-    if tower.output_combinator then
-        tower.output_combinator:destroy()
-    end
-    if tower.harvest_disable_inserter_1 then
-        tower.harvest_disable_inserter_1:destroy()
-    end
-    if tower.harvest_disable_inserter_2 then
-        tower.harvest_disable_inserter_2:destroy()
-    end
-    if tower.harvest_disable_infinity_container then
-        tower.harvest_disable_infinity_container:destroy()
-    end
-    if tower.harvest_disable_proxy_container then
-        tower.harvest_disable_proxy_container:destroy()
-    end
+    if tower.output_combinator then tower.output_combinator:destroy() end
+    if tower.harvest_disable_inserter_1 then tower.harvest_disable_inserter_1:destroy() end
+    if tower.harvest_disable_inserter_2 then tower.harvest_disable_inserter_2:destroy() end
+    if tower.harvest_disable_infinity_container then tower.harvest_disable_infinity_container:destroy() end
+    if tower.harvest_disable_proxy_container then tower.harvest_disable_proxy_container:destroy() end
     tower:clear_blocked_slots()
 
     storage.towers[unit_number] = nil
@@ -243,15 +233,10 @@ end
 function prototype:on_control_settings_or_status_updated()
     -- Create or destroy the output combinator
     if self.control_settings.read_mature_plants_enabled then
-        if not self.output_combinator then
-            self.output_combinator = OutputCombinator:create(self.entity)
-        end
+        self.output_combinator = OutputCombinator:create_if_not_exists(self.output_combinator, self.entity)
         self:recount_mature_plants()
     else
-        if self.output_combinator then
-            self.output_combinator:destroy()
-            self.output_combinator = nil
-        end
+        self.output_combinator = self.output_combinator and self.output_combinator:destroy()
     end
 
     -- Create and configure or destroy the entities for harvest disabling
@@ -260,40 +245,22 @@ function prototype:on_control_settings_or_status_updated()
         -- Check the following as well, to ensure blocked slot items don't appear when a robot comes to deconstruct
         not self.entity.to_be_deconstructed()
     then
-        if not self.harvest_disable_inserter_1 then
-            self.harvest_disable_inserter_1 = harvest_disable_entities.HarvestDisableInserter:create(self.entity)
-        end
-        if not self.harvest_disable_inserter_2 then
-            self.harvest_disable_inserter_2 = harvest_disable_entities.HarvestDisableInserter:create(self.entity)
-        end
-        if not self.harvest_disable_infinity_container then
-            self.harvest_disable_infinity_container = harvest_disable_entities.HarvestDisableInfinityContainer:create(self.entity)
-        end
-        if not self.harvest_disable_proxy_container then
-            self.harvest_disable_proxy_container = harvest_disable_entities.HarvestDisableProxyContainer:create(self.entity)
-        end
+        self.harvest_disable_inserter_1 = harvest_disable_entities.HarvestDisableInserter:create_if_not_exists(self.harvest_disable_inserter_1, self.entity)
+        self.harvest_disable_inserter_2 = harvest_disable_entities.HarvestDisableInserter:create_if_not_exists(self.harvest_disable_inserter_2, self.entity)
+        self.harvest_disable_infinity_container = harvest_disable_entities.HarvestDisableInfinityContainer:create_if_not_exists(self.harvest_disable_infinity_container, self.entity)
+        self.harvest_disable_proxy_container = harvest_disable_entities.HarvestDisableProxyContainer:create_if_not_exists(self.harvest_disable_proxy_container, self.entity)
+
         self.harvest_disable_inserter_1:connect(self.harvest_disable_infinity_container.entity, self.harvest_disable_proxy_container.entity)
         self.harvest_disable_inserter_2:connect(self.harvest_disable_proxy_container.entity, self.harvest_disable_infinity_container.entity)
 
         self.harvest_disable_inserter_1:set_condition(circuit_condition.export(self.control_settings.enable_harvest_condition, true)--[[@as CircuitConditionDefinition]])
         self.harvest_disable_inserter_2:set_condition(circuit_condition.export(self.control_settings.enable_harvest_condition, false)--[[@as CircuitConditionDefinition]])
     else
-        if self.harvest_disable_inserter_1 then
-            self.harvest_disable_inserter_1:destroy()
-            self.harvest_disable_inserter_1 = nil
-        end
-        if self.harvest_disable_inserter_2 then
-            self.harvest_disable_inserter_2:destroy()
-            self.harvest_disable_inserter_2 = nil
-        end
-        if self.harvest_disable_infinity_container then
-            self.harvest_disable_infinity_container:destroy()
-            self.harvest_disable_infinity_container = nil
-        end
-        if self.harvest_disable_proxy_container then
-            self.harvest_disable_proxy_container:destroy()
-            self.harvest_disable_proxy_container = nil
-        end
+        self.harvest_disable_inserter_1 = self.harvest_disable_inserter_1 and self.harvest_disable_inserter_1:destroy()
+        self.harvest_disable_inserter_2 = self.harvest_disable_inserter_2 and self.harvest_disable_inserter_2:destroy()
+        self.harvest_disable_infinity_container = self.harvest_disable_infinity_container and self.harvest_disable_infinity_container:destroy()
+        self.harvest_disable_proxy_container = self.harvest_disable_proxy_container and self.harvest_disable_proxy_container:destroy()
+
         self:clear_blocked_slots()
     end
 end

@@ -6,6 +6,7 @@ local AuxiliaryEntity = require("script.auxiliary_entity")
 
 ---@class OutputCombinator.class: AuxiliaryEntity.class
 ---@field create fun(self: self, parent: LuaEntity): OutputCombinator
+---@field create_if_not_exists fun(self: self, existing: OutputCombinator?, parent: LuaEntity): OutputCombinator
 local OutputCombinator = setmetatable({}, {__index = AuxiliaryEntity})
 
 ---@class OutputCombinator: AuxiliaryEntity

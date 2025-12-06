@@ -23,6 +23,20 @@ function AuxiliaryEntity:create(parent)
     return instance
 end
 
+---Check if the existing auxiliary entity exists and is valid,
+---if it is not, (re)create it.
+---@protected
+---@param existing AuxiliaryEntity?
+---@param parent LuaEntity
+---@return AuxiliaryEntity
+function AuxiliaryEntity:create_if_not_exists(existing, parent)
+    if not existing then
+        return self:create(parent)
+    end
+    existing:ensure_valid(parent)
+    return existing
+end
+
 AuxiliaryEntity.auxiliary_entity_event_filter = {}
 for _, name in ipairs(constants.auxiliary_entity_names) do
     table.insert(AuxiliaryEntity.auxiliary_entity_event_filter, {
@@ -70,6 +84,7 @@ function prototype:make_create_entity_param(parent)
     }--[[@as LuaSurface.create_entity_param]]
 end
 
+---@return nil
 function prototype:destroy()
     self.entity.destroy()
 end

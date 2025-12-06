@@ -19,6 +19,7 @@ local AuxiliaryEntity = require("script.auxiliary_entity")
 
 ---@class HarvestDisableInserter.class: AuxiliaryEntity.class
 ---@field create fun(self: self, parent: LuaEntity): HarvestDisableInserter
+---@field create_if_not_exists fun(self: self, existing: HarvestDisableInserter?, parent: LuaEntity): HarvestDisableInserter
 local HarvestDisableInserter = setmetatable({}, {__index = AuxiliaryEntity})
 
 ---@class HarvestDisableInserter: AuxiliaryEntity
@@ -58,6 +59,7 @@ end
 
 ---@class HarvestDisableInfinityContainer.class: AuxiliaryEntity.class
 ---@field create fun(self: self, parent: LuaEntity): HarvestDisableInfinityContainer
+---@field create_if_not_exists fun(self: self, existing: HarvestDisableInfinityContainer?, parent: LuaEntity): HarvestDisableInfinityContainer
 local HarvestDisableInfinityContainer = setmetatable({}, {__index = AuxiliaryEntity})
 
 ---@class HarvestDisableInfinityContainer: AuxiliaryEntity
@@ -82,6 +84,7 @@ end
 
 ---@class HarvestDisableProxyContainer.class: AuxiliaryEntity.class
 ---@field create fun(self: self, parent: LuaEntity): HarvestDisableProxyContainer
+---@field create_if_not_exists fun(self: self, existing: HarvestDisableProxyContainer?, parent: LuaEntity): HarvestDisableProxyContainer
 local HarvestDisableProxyContainer = setmetatable({}, {__index = AuxiliaryEntity})
 
 ---@class HarvestDisableProxyContainer: AuxiliaryEntity
