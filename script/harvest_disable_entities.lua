@@ -29,6 +29,10 @@ HarvestDisableInserter.prototype.__index = HarvestDisableInserter.prototype
 function HarvestDisableInserter.prototype:create(parent)
     AuxiliaryEntity.prototype.create(self, parent)
 
+    self.entity.use_filters = true
+    self.entity.inserter_filter_mode = "whitelist"
+    self.entity.set_filter(1, {name = constants.item_blocked_slot})
+
     for _, connector_id in ipairs{defines.wire_connector_id.circuit_red, defines.wire_connector_id.circuit_green} do
         self.entity.get_wire_connector(connector_id, true).connect_to(parent.get_wire_connector(connector_id, true), false, defines.wire_origin.script)
     end
@@ -73,6 +77,7 @@ function HarvestDisableInfinityContainer.prototype:create(parent)
         count = 1,
         mode = "exactly",
     })
+    self.entity.remove_unfiltered_items = true
 end
 
 function HarvestDisableInfinityContainer.prototype:make_create_entity_param(parent)

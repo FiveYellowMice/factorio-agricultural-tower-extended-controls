@@ -45,6 +45,7 @@ data:extend{
         pickup_position = {0, 0},
         energy_source = {type = "void"},
         uses_inserter_stack_size_bonus = false,
+        filter_count = 1,
         draw_held_item = false,
         draw_inserter_arrow = false,
         circuit_wire_max_distance = settings.startup[constants.setting_debug].value and 1 or nil,
