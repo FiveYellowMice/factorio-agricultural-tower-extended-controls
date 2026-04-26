@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-04-27
+  Changes:
+    - Block slot items are no longer destroyed by picking and placing the item with a cursor.
+    - Block slot items can now be placed as a building, that destroys more blocked slot items being inserted into it.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.1.3
 Date: 2025-12-06
   Bugfixes:
