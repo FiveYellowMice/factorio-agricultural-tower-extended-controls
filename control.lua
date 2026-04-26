@@ -6,6 +6,7 @@ local ExtendedTower = require("script.extended_tower")
 local AuxiliaryEntity = require("script.auxiliary_entity")
 local OutputCombinator = require("script.output_combinator")
 local harvest_disable_entities = require("script.harvest_disable_entities")
+local BlockedSlotRemover = require("script.blocked_slot_remover")
 local tower_gui = require("script.tower_gui")
 local tower_index = require('script.tower_index')
 
@@ -176,6 +177,9 @@ local function built_entity_handler(event)
             -- So when they are cloned by other mods (e.g. with area clone), destroy them.
             entity.destroy()
         end
+
+    elseif BlockedSlotRemover.is_block_slot_entity(entity) then
+        BlockedSlotRemover.create(entity)
     end
 end
 local built_entity_filter = util.array_concat{
@@ -187,6 +191,7 @@ local built_entity_filter = util.array_concat{
     },
     ExtendedTower.agricultural_tower_event_filter,
     AuxiliaryEntity.auxiliary_entity_event_filter,
+    BlockedSlotRemover.blocked_slot_entity_event_filter,
 }
 script.on_event(defines.events.on_tower_planted_seed, built_entity_handler)
 script.on_event(defines.events.on_built_entity, built_entity_handler, built_entity_filter)

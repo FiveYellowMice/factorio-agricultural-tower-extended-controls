@@ -9,6 +9,7 @@ constants.entity_harvest_disable_inserter = constants.name_prefix.."harvest-disa
 constants.entity_harvest_disable_infinity_container = constants.name_prefix.."harvest-disable-infinity-container"
 constants.entity_harvest_disable_proxy_container = constants.name_prefix.."harvest-disable-proxy-container"
 constants.item_blocked_slot = constants.name_prefix.."blocked-slot"
+constants.entity_blocked_slot = constants.name_prefix.."blocked-slot"
 
 constants.auxiliary_entity_names = {
     constants.entity_output_combinator,

@@ -72,7 +72,6 @@ data:extend{
         hidden = true,
         flags = {
             "not-stackable",
-            "only-in-cursor",
         },
         stack_size = 1,
         icons = {
@@ -82,7 +81,49 @@ data:extend{
                 draw_background = false,
             }
         },
-    }
+        place_result = constants.entity_blocked_slot,
+    },
+    {
+        type = "infinity-container",
+        name = constants.entity_blocked_slot,
+        hidden = true,
+        flags = {
+            "player-creation",
+            "placeable-player",
+            "no-automated-item-removal",
+        },
+        collision_box = {{-0.4, -0.4}, {0.4, 0.4}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        icons = {
+            {
+                icon = "__core__/graphics/set-bar-slot.png",
+                icon_size = 64,
+                draw_background = false,
+            }
+        },
+        picture = {
+            layers = {
+                {
+                    filename = "__core__/graphics/gui-new.png",
+                    size = 64,
+                    position = {8, 938},
+                    scale = 0.5,
+                },
+                {
+                    filename = "__core__/graphics/set-bar-slot.png",
+                    size = 64,
+                    scale = 0.5,
+                },
+            },
+        },
+        map_color = {0, 0, 0},
+        minable = {mining_time = 0.1},
+        erase_contents_when_mined = false,
+        preserve_contents_when_created = false,
+        gui_mode = "none",
+        inventory_size = 1,
+        inventory_type = "normal",
+    },
 }
 
 
