@@ -176,7 +176,7 @@ function tower_gui.create(player, entity)
         },
     }
 
-    if settings.startup[constants.setting_debug].value then
+    if script.active_mods[constants.mod_debug] then
         inner_frame.add{
             type = "line",
             style = "inside_shallow_frame_with_padding_line",

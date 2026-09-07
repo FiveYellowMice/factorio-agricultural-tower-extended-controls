@@ -48,7 +48,7 @@ data:extend{
         filter_count = 1,
         draw_held_item = false,
         draw_inserter_arrow = false,
-        circuit_wire_max_distance = settings.startup[constants.setting_debug].value and 1 or nil,
+        circuit_wire_max_distance = mods[constants.mod_debug] and 1 or nil,
     }--[[@as data.InserterPrototype]]},
 
     util.merge{hidden_entity_base, {
@@ -155,10 +155,3 @@ gui_style[constants.gui_style_prefix.."circuit_condition_constant_textbox"] = {
     game_controller_hovered_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].hovered_graphical_set),
     disabled_background = util.table.deepcopy(gui_style["slot_button_in_shallow_frame"].disabled_graphical_set),
 }
-
-
-if settings.startup[constants.setting_debug].value then
-    -- Make Gleba plants grow in 5 seconds
-    data.raw["plant"]["yumako-tree"].growth_ticks = 5 * 60
-    data.raw["plant"]["jellystem"].growth_ticks = 5 * 60
-end

@@ -108,7 +108,7 @@ script.on_event(defines.events.on_gui_click,
         local player = game.get_player(event.player_index)
         if not player then return end
 
-        if settings.startup[constants.setting_debug].value and event.element.tags[constants.gui_tag_debug_aux_entity] then
+        if script.active_mods[constants.mod_debug] and event.element.tags[constants.gui_tag_debug_aux_entity] then
             -- Debug: open GUI for an auxiliary entity
             if not player.opened or player.opened.object_name ~= "LuaEntity" then return end
             local tower = ExtendedTower.get(player.opened--[[@as LuaEntity]])

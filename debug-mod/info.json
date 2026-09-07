@@ -1,0 +1,11 @@
+{
+    "name": "agricultural-tower-extended-controls-debug",
+    "version": "0.0.0",
+    "title": "Agricultural Tower Extended Controls (Debug)",
+    "description": "Enables debugging functionalities of Agricultural Tower Extended Controls.",
+    "author": "",
+    "factorio_version": "2.0",
+    "dependencies": [
+        "agricultural-tower-extended-controls"
+    ]
+}

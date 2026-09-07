@@ -11,7 +11,8 @@
     ],
     "package": {
         "ignore": [
-            "README.md"
+            "README.md",
+            "debug-mod/**/*"
         ]
     }
 }

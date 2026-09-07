@@ -2,7 +2,7 @@ local constants = {}
 
 constants.name_prefix = "agricultural_tower_extended_controls-"
 
-constants.setting_debug = constants.name_prefix.."debug"
+constants.mod_debug = "agricultural-tower-extended-controls-debug"
 
 constants.entity_output_combinator = constants.name_prefix.."output-combinator"
 constants.entity_harvest_disable_inserter = constants.name_prefix.."harvest-disable-inserter"
