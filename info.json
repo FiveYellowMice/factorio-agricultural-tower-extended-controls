@@ -9,7 +9,6 @@
         "base >= 2.0.62",
         "(?) space-age"
     ],
-    "space_travel_required": true,
     "package": {
         "ignore": [
             "README.md"
