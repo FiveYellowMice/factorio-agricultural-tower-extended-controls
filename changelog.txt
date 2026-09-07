@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2026-09-07
+  Compatibility:
+    - Removes space travel feature flag. This mod sits silently without an agricultural tower implementation.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2026-04-27
   Changes:
